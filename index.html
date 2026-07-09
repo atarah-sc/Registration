@@ -1,91 +1,67 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Google Sheets to HTML</title>
-<style>
-body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-th, td { border: 1px solid #dddddd; text-align: left; padding: 12px; }
-th { background-color: #4CAF50; color: white; }
-tr:nth-child(even) { background-color: #f2f2f2; }
-</style>
+<title>ATARAH 2026 — Data Lookup</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+    body { font-family: 'Inter', sans-serif; padding: 20px; background: #f4f4f9; }
+    .controls { display: flex; gap: 20px; margin-bottom: 20px; }
+    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    select { padding: 10px; width: 250px; }
+    @media print { .no-print { display: none; } }
+</style>
 </head>
 <body>
 
-<h2>Data From Google Sheets</h2>
-<div id="loading">Loading data...</div>
-<table id="data-table" style="display:none;">
-<thead>
-<tr id="table-header"></tr>
-</thead>
-<tbody id="table-body"></tbody>
-</table>
+<div class="controls no-print">
+    <select id="churchSelect"><option value="">Search by Church</option></select>
+    <select id="eventSelect"><option value="">Search by Event</option></select>
+    <button onclick="window.print()">Print Results</button>
+</div>
+
+<div id="results" class="card">Select a filter to view data.</div>
 
 <script>
-// 1. Replace with your actual Google Sheet ID
 const sheetId = '1fj8_as7Zr7PVSW9FM599ZnrLWl2DDlZGPVTB_IlNK5M';
-// 2. Use the CSV export URL
 const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=765649940`;
+let allData = [];
 
-async function fetchSheetData() {
-    try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.text();
-
-        // Basic CSV parsing: Split by new line, then by comma
-        // Note: If your cells contain commas, this simple split will break.
-        // For complex data, consider using a library like PapaParse.
-        const rows = data.split('\n').map(row => row.split(','));
-        
-        displayData(rows);
-    } catch (error) {
-        console.error('Error fetching sheet data:', error);
-        document.getElementById('loading').innerText = 'Failed to load data. Ensure the sheet is public.';
-    }
+async function fetchData() {
+    const response = await fetch(url);
+    const csv = await response.text();
+    Papa.parse(csv, {
+        header: true,
+        complete: function(results) {
+            allData = results.data;
+            populateDropdowns();
+        }
+    });
 }
 
-function displayData(rows) {
-const headerRow = document.getElementById('table-header');
-const bodyContainer = document.getElementById('table-body');
-
-// Clear placeholders
-headerRow.innerHTML = '';
-bodyContainer.innerHTML = '';
-
-// Create Headers (First row of the sheet)
-const headers = rows[0];
-headers.forEach(header => {
-const th = document.createElement('th');
-th.innerText = header.replace(/"/g, ''); // Clean quotes if any
-headerRow.appendChild(th);
-});
-
-// Create Rows
-for (let i = 1; i < rows.length; i++) {
-if (rows[i].length === 1 && rows[i][0] === "") continue; // Skip empty rows
-
-const tr = document.createElement('tr');
-rows[i].forEach(cell => {
-const td = document.createElement('td');
-td.innerText = cell.replace(/"/g, '');
-tr.appendChild(td);
-});
-bodyContainer.appendChild(tr);
+function populateDropdowns() {
+    const churches = [...new Set(allData.map(r => r.Church))].sort();
+    const events = [...new Set(allData.map(r => r.Event))].sort();
+    
+    churches.forEach(c => document.getElementById('churchSelect').innerHTML += `<option value="${c}">${c}</option>`);
+    events.forEach(e => document.getElementById('eventSelect').innerHTML += `<option value="${e}">${e}</option>`);
 }
 
-// Toggle visibility
-document.getElementById('loading').style.display = 'none';
-document.getElementById('data-table').style.display = 'table';
+function render(filterType, value) {
+    if (!value) return;
+    const filtered = allData.filter(r => r[filterType] === value);
+    let html = `<h3>Results for ${value}</h3><table border="1" width="100%"><tr><th>Church</th><th>Event</th><th>Fee</th></tr>`;
+    filtered.forEach(r => {
+        html += `<tr><td>${r.Church}</td><td>${r.Event}</td><td>${r.Fee}</td></tr>`;
+    });
+    document.getElementById('results').innerHTML = html + `</table>`;
 }
 
-// Run the function on load
-fetchSheetData();
+document.getElementById('churchSelect').addEventListener('change', (e) => render('Church', e.target.value));
+document.getElementById('eventSelect').addEventListener('change', (e) => render('Event', e.target.value));
+
+fetchData();
 </script>
 </body>
 </html>
