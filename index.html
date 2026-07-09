@@ -481,224 +481,51 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  let DATA = []; // This will be populated by Firestore
+  let DATA = []; 
+  const selectEl = document.getElementById('churchSelect');
+  const eventSelectEl = document.getElementById('eventSelect');
 
-  // Listen for real-time updates
+  // 1. Real-time sync: Listens to the 'registrations' collection
   onSnapshot(collection(db, "registrations"), (snapshot) => {
     DATA = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    // Re-initialize dropdowns and UI after data loads
-    initializeDropdowns();
+    
+    // Populate Church Dropdown
+    selectEl.innerHTML = '<option value="">— Choose a church —</option>';
+    DATA.forEach((r, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = r.church;
+      selectEl.appendChild(opt);
+    });
+
+    // Populate Event Dropdown
+    const eventNames = Array.from(new Set(DATA.flatMap(r => r.events.map(e => e.name)))).sort();
+    eventSelectEl.innerHTML = '<option value="">— Choose an event —</option>';
+    eventNames.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      eventSelectEl.appendChild(opt);
+    });
   });
 
-  async function togglePaid(id, currentStatus) {
+  // 2. Updated toggle logic using Firestore ID
+  window.togglePaid = async function(id, currentStatus) {
     const docRef = doc(db, "registrations", id);
     await updateDoc(docRef, { paid: !currentStatus });
-  }
+  };
 
-  // Add event listeners to trigger togglePaid using the Firestore document ID
-  // Update your render functions to pass 'r.id' to the toggle logic
-  
-const DATA = [{"church":"All Saints’ Church","email":"allsaintschurch.yfl@gmail.com","contact":"9591018293","events":[{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Rule the Streets (Street Play)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":5200,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"Bishop Sargant Memorial Church","email":"graceevangeline801@gmail.com","contact":"7349370838","events":[{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":4900,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"Christ The Savior Church","email":"franklininfant2@gmail.com","contact":"8904737965","events":[{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":4900,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"Christha Krupalaya Church","email":"amitmelvin143@gmail.com","contact":"9886002097","events":[{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":500,"payMode":"Online","paid":true,"discountApplied":false},{"church":"Christhu Jeeva Jyothi Alayam","email":"seeganpaul31@gmail.com","contact":"9113517297","events":[{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":2800,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"CSI Bethany Church Channapatana","email":"thekingsamson51@gmail.com","contact":"9606167955","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Rule the Streets (Street Play)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":5000,"payMode":"On the day of the event","paid":false,"rawTotal":6700,"discountApplied":true},{"church":"CSI Christ The King Church","email":"csictkc.jalahalli@gmail.com","contact":"9620643702","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":3800,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"Csi christha jyothi alaya, kathriguppe","email":"narayan.srstravels@gmail.com","contact":"6362964412","events":[{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":1300,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"CSI Christha Prabhalaya, Yelahanka","email":"georgenishanthvincent@gmail.com","contact":"8553868600","events":[{"name":"God in 180 (Short Video)","fee":800}],"total":800,"payMode":"Online","paid":true,"discountApplied":false},{"church":"CSI COVENENT CHURCH","email":"evangeleenjagadish@gmail.com","contact":"9743366530","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":3500,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"CSI David Memorial Church","email":"danprasannaraj@gmail.com","contact":"9845430547","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500}],"total":5400,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"CSI Grace Church","email":"amithdphilip125@gmail.com","contact":"7019521676","events":[{"name":"God in 180 (Short Video)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500}],"total":2300,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"CSI Holy Redeemer Church","email":"csi.hrc.youth@gmail.com","contact":"8105433355","events":[{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":1000,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"CSI Kannada Church Electronic City","email":"aaroncalvin007@gmail.com","contact":"9845102441","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Rule the Streets (Street Play)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":5000,"payMode":"On the day of the event","paid":false,"rawTotal":6700,"discountApplied":true},{"church":"CSI Sawday memorial Church","email":"samuelrodricks26@gmail.com","contact":"7026460109","events":[{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":3900,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"CSI YESUKRUPALAYA","email":"ryanjayaraj17@gmail.com","contact":"8217314296","events":[{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":2800,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"CSI Zion Church","email":"meriton.samuel.ms@gmail.com","contact":"9740117147","events":[{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":3900,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"East parade tamil church","email":"hcynthia9900@gmail.com","contact":"8105403147","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":2800,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"Eaton Memorial Church","email":"svimalraj009@gmail.com","contact":"9591017954","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Rule the Streets (Street Play)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":5000,"payMode":"On the day of the event","paid":false,"rawTotal":6700,"discountApplied":true},{"church":"Memorial Church Whitefield","email":"jacobjoelgeraldecc@gmail.com","contact":"7353281735","events":[{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500}],"total":3900,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"Rice Memorial Church","email":"prashujay619@gmail.com","contact":"8296033533","events":[{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":2300,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"Shaffer's Church","email":"roshanj003@gmail.com","contact":"7892678927","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Rule the Streets (Street Play)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":5000,"payMode":"On the day of the event","paid":false,"rawTotal":6700,"discountApplied":true},{"church":"SHANTHA OLIVER MEMORIAL CHURCH","email":"pdaniel8171@gmail.com","contact":"9902293235","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Rule the Streets (Street Play)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":5000,"payMode":"On the day of the event","paid":false,"rawTotal":6700,"discountApplied":true},{"church":"St Andrew's Church","email":"alexwilliamnoronha114@gmail.com","contact":"6363730165","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":3600,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"St John's Church","email":"clarence.edward04@gmail.com","contact":"9742823349","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":2800,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"St Luke's church","email":"giftsonjoshua37@gmail.com","contact":"7259543178","events":[{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Rule the Streets (Street Play)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":5700,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"St Mark's Cathedral","email":"rishab.madan2003@gmail.com","contact":"6361661702","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":1500,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"St Matthews Church","email":"jeffrey234@gmail.com","contact":"9742099238","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":4600,"payMode":"Online","paid":true,"discountApplied":false},{"church":"St Paul’s Church","email":"hepzibhajemi@gmail.com","contact":"7022833047","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Rule the Streets (Street Play)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":6200,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"St Stephen's Church","email":"ronald.mathew22@gmail.com","contact":"9900931616","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Rule the Streets (Street Play)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":5000,"payMode":"On the day of the event","paid":false,"rawTotal":6700,"discountApplied":true},{"church":"St Thomas Church","email":"helandavid0123@gmail.com","contact":"7406803323","events":[{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":2800,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"St. Peter's Tamil Church","email":"joselincharles3017@gmail.com","contact":"8940871673","events":[{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":4400,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"St. Peter’s Telugu Church","email":"jontyabhi221@gmail.com","contact":"8884241735","events":[{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Holy Makeover Studio (Face Paint)","fee":500}],"total":1300,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"Wesley English Church","email":"captainandrew214@gmail.com","contact":"7026622106","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":5400,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"Wesley Tamil Church - Ashok Nagar","email":"andreadenzy1605@gmail.com","contact":"7019014505","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":4600,"payMode":"On the day of the event","paid":false,"discountApplied":false},{"church":"Wesley Tamil Church Haines Road","email":"pjemima2@gmail.com","contact":"8105405135","events":[{"name":"Crowned in Harmony (Group Singing)","fee":1000},{"name":"God in 180 (Short Video)","fee":800},{"name":"Crown of Wisdom (Quiz)","fee":800},{"name":"Kingdom Kaleidoscope (Potpourri)","fee":800},{"name":"Rule the Streets (Street Play)","fee":800},{"name":"Psalm-thing Snap-tastic (Photography)","fee":500},{"name":"Reel & Reveal (Reel Making)","fee":500},{"name":"Holy Makeover Studio (Face Paint)","fee":500},{"name":"Rule the Mic (Pick and Speak)","fee":500},{"name":"One Voice, One Faith (Solo Singing)","fee":500}],"total":5000,"payMode":"On the day of the event","paid":false,"rawTotal":6700,"discountApplied":true}]
-;
+  // 3. Update Event Listener logic
+  resultArea.addEventListener('click', (e) => {
+    const btn = e.target.closest('.paid-toggle');
+    if (btn) {
+      const churchName = btn.dataset.church;
+      const churchData = DATA.find(c => c.church === churchName);
+      if (churchData) togglePaid(churchData.id, churchData.paid);
+    }
+  });
 
-const selectEl = document.getElementById('churchSelect');
-const resultArea = document.getElementById('resultArea');
-const eventSelectEl = document.getElementById('eventSelect');
-const eventResultArea = document.getElementById('eventResultArea');
-
-// --- Paid status persistence (stored in this browser only) ---
-const PAID_STORE_KEY = 'atarah2026PaidOverrides';
-function loadPaidOverrides(){
-  try{
-    return JSON.parse(localStorage.getItem(PAID_STORE_KEY) || '{}');
-  }catch(e){ return {}; }
-}
-function savePaidOverrides(obj){
-  try{ localStorage.setItem(PAID_STORE_KEY, JSON.stringify(obj)); }catch(e){}
-}
-const paidOverrides = loadPaidOverrides();
-DATA.forEach(r => {
-  if(Object.prototype.hasOwnProperty.call(paidOverrides, r.church)){
-    r.paid = paidOverrides[r.church];
-  }
-});
-
-function togglePaid(church){
-  const r = DATA.find(x => x.church === church);
-  if(!r) return;
-  r.paid = !r.paid;
-  paidOverrides[church] = r.paid;
-  savePaidOverrides(paidOverrides);
-  render(selectEl.value);
-  renderEvent(eventSelectEl.value);
-}
-
-function printChurchRecord(){
-  document.body.classList.remove('printing-event');
-  document.body.classList.add('printing-church');
-  window.print();
-}
-
-function printEventRecord(){
-  document.body.classList.remove('printing-church');
-  document.body.classList.add('printing-event');
-  window.print();
-}
-
-window.addEventListener('afterprint', () => {
-  document.body.classList.remove('printing-church', 'printing-event');
-});
-
-DATA.forEach((r, i) => {
-  const opt = document.createElement('option');
-  opt.value = i;
-  opt.textContent = r.church;
-  selectEl.appendChild(opt);
-});
-
-// --- Build unique, sorted list of events across all churches ---
-const EVENT_NAMES = Array.from(new Set(
-  DATA.flatMap(r => r.events.map(e => e.name))
-)).sort((a, b) => a.localeCompare(b));
-
-EVENT_NAMES.forEach(name => {
-  const opt = document.createElement('option');
-  opt.value = name;
-  opt.textContent = name;
-  eventSelectEl.appendChild(opt);
-});
-
-function formatRupees(n){
-  return '₹' + n.toLocaleString('en-IN');
-}
-
-function escapeHtml(str){
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
-}
-
-function render(idx){
-  if(idx === '' || idx === null){
-    resultArea.innerHTML = '<div class="empty-state">Select a church above to view its events and payment status.</div>';
-    return;
-  }
-  const r = DATA[idx];
-  const paidClass = r.paid ? 'paid' : 'unpaid';
-  const paidLabel = r.paid ? 'Paid' : 'Payment Pending';
-
-  let eventsHtml;
-  if(r.events.length === 0){
-    eventsHtml = '<div class="no-events">No events registered yet.</div>';
-  } else {
-    eventsHtml = '<ul class="events-list">' + r.events.map(e =>
-      `<li><span class="ev-name">${e.name}</span><span class="ev-fee">${formatRupees(e.fee)}</span></li>`
-    ).join('') + '</ul>';
-  }
-
-  let totalsHtml;
-  if(r.discountApplied){
-    totalsHtml = `
-      <div>
-        <div class="label">Amount Due (All-Events Bundle)</div>
-      </div>
-      <div class="amount"><span class="strike">${formatRupees(r.rawTotal)}</span>${formatRupees(r.total)}</div>
-      <div class="discount-note">✦ Registered for all 10 events — bundle rate applied.</div>
-    `;
-  } else {
-    totalsHtml = `
-      <div class="label">Amount Due</div>
-      <div class="amount">${formatRupees(r.total)}</div>
-    `;
-  }
-
-  resultArea.innerHTML = `
-    <div class="church-card">
-      <div class="church-header">
-        <div>
-          <h2 class="church-name">${r.church}</h2>
-          <div class="church-meta">
-            ${r.contact ? 'Contact: ' + r.contact + '<br>' : ''}
-            ${r.email ? r.email : ''}
-          </div>
-        </div>
-        <span class="status-pill ${paidClass}"><span class="dot"></span>${paidLabel}</span>
-      </div>
-
-      <label class="field-label">Registered Events (${r.events.length})</label>
-      ${eventsHtml}
-
-      <div class="totals-box">
-        ${totalsHtml}
-      </div>
-      <div class="pay-mode-note">Payment mode selected at registration: ${r.payMode}</div>
-      <div class="card-actions">
-        <button class="paid-toggle" data-church="${escapeHtml(r.church)}">
-          Mark as ${r.paid ? 'Payment Pending' : 'Paid'}
-        </button>
-        <button class="print-btn" onclick="printChurchRecord()">🖨 Print this record</button>
-      </div>
-    </div>
-  `;
-}
-
-function renderEvent(eventName){
-  if(!eventName){
-    eventResultArea.innerHTML = '<div class="empty-state">Select an event above to see which churches are participating.</div>';
-    return;
-  }
-  const participants = DATA.filter(r => r.events.some(e => e.name === eventName));
-
-  if(participants.length === 0){
-    eventResultArea.innerHTML = '<div class="no-events">No churches registered for this event yet.</div>';
-    return;
-  }
-
-  const rows = participants.map(r => {
-    const paidClass = r.paid ? 'paid' : 'unpaid';
-    const paidLabel = r.paid ? 'Paid' : 'Payment Pending';
-    return `
-      <li>
-        <span class="ec-name">${r.church}</span>
-        <span class="ec-right">
-          <span class="status-pill ${paidClass}"><span class="dot"></span>${paidLabel}</span>
-          <button class="paid-toggle" data-church="${escapeHtml(r.church)}">
-            Mark as ${r.paid ? 'Payment Pending' : 'Paid'}
-          </button>
-        </span>
-      </li>
-    `;
-  }).join('');
-
-  eventResultArea.innerHTML = `
-    <div class="event-count">${participants.length} church${participants.length === 1 ? '' : 'es'} registered for “${eventName}”</div>
-    <ul class="event-church-list">${rows}</ul>
-    <div class="card-actions">
-      <button class="print-btn" onclick="printEventRecord()">🖨 Print this list</button>
-    </div>
-  `;
-}
-
-function getToggleButton(target){
-  const el = target && target.nodeType === 3 ? target.parentElement : target;
-  return el ? el.closest('.paid-toggle') : null;
-}
-
-selectEl.addEventListener('change', (e) => render(e.target.value));
-eventSelectEl.addEventListener('change', (e) => renderEvent(e.target.value));
-
-resultArea.addEventListener('click', (e) => {
-  const btn = getToggleButton(e.target);
-  if(btn) togglePaid(btn.dataset.church);
-});
-
-eventResultArea.addEventListener('click', (e) => {
-  const btn = getToggleButton(e.target);
-  if(btn) togglePaid(btn.dataset.church);
-});
+  // Note: Ensure your render/renderEvent functions refer to global DATA and trigger re-render
 </script>
 
 </body>
