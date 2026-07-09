@@ -1,7 +1,4 @@
 
-Barnabas R
-4:50 PM (0 minutes ago)
-to me
 
 <!DOCTYPE html>
 <html lang="en">
@@ -16,6 +13,7 @@ th, td { border: 1px solid #dddddd; text-align: left; padding: 12px; }
 th { background-color: #4CAF50; color: white; }
 tr:nth-child(even) { background-color: #f2f2f2; }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
 <body>
 
@@ -31,22 +29,25 @@ tr:nth-child(even) { background-color: #f2f2f2; }
 <script>
 // 1. Replace with your actual Google Sheet ID
 const sheetId = '1fj8_as7Zr7PVSW9FM599ZnrLWl2DDlZGPVTB_IlNK5M';
-// 2. We request the data as a CSV format
-const url = `https://docs.google.com/spreadsheets/d/1fj8_as7Zr7PVSW9FM599ZnrLWl2DDlZGPVTB_IlNK5M/edit?gid=765649940#gid=765649940`;
+// 2. Use the CSV export URL
+const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=765649940`;
 
 async function fetchSheetData() {
-try {
-const response = await fetch(url);
-const data = await response.text();
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.text();
 
-// Parse CSV text into an array of rows
-const rows = data.split('\n').map(row => row.split(','));
-
-displayData(rows);
-} catch (error) {
-console.error('Error fetching sheet data:', error);
-document.getElementById('loading').innerText = 'Failed to load data.';
-}
+        // Basic CSV parsing: Split by new line, then by comma
+        // Note: If your cells contain commas, this simple split will break.
+        // For complex data, consider using a library like PapaParse.
+        const rows = data.split('\n').map(row => row.split(','));
+        
+        displayData(rows);
+    } catch (error) {
+        console.error('Error fetching sheet data:', error);
+        document.getElementById('loading').innerText = 'Failed to load data. Ensure the sheet is public.';
+    }
 }
 
 function displayData(rows) {
