@@ -1,122 +1,535 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATARAH 2026 — Church Registration Lookup</title>
-    <style>
-        /* [Your existing styles remain exactly the same] */
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATARAH 2026 — Church Registration Lookup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gold:#c9a646;
+    --gold-bright:#e8c874;
+    --forest:#1f3d2b;
+    --forest-deep:#12241a;
+    --crimson:#8a1f2d;
+    --crimson-bright:#b53042;
+    --cream:#f7f1e1;
+    --ink:#221a10;
+    --paid:#3f7a4f;
+    --unpaid:#8a1f2d;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(201,166,70,0.10), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(138,31,45,0.14), transparent 50%),
+      linear-gradient(160deg, var(--forest-deep) 0%, var(--forest) 55%, #16301f 100%);
+    font-family:'Inter', sans-serif;
+    color:var(--cream);
+    padding:0 0 80px 0;
+  }
+
+  .ornament-row{
+    display:flex;
+    justify-content:center;
+    gap:14px;
+    padding:22px 0 4px;
+    opacity:0.75;
+  }
+  .ornament-row span{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--gold);
+    box-shadow:0 0 8px var(--gold-bright);
+  }
+
+  header{
+    text-align:center;
+    padding:10px 20px 34px;
+    position:relative;
+  }
+  header::after{
+    content:"";
+    display:block;
+    width:120px;height:2px;
+    margin:22px auto 0;
+    background:linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+  .eyebrow{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    letter-spacing:0.35em;
+    text-transform:uppercase;
+    font-size:13px;
+    color:var(--gold-bright);
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Cinzel', serif;
+    font-weight:900;
+    font-size:clamp(2.2rem, 6vw, 4rem);
+    margin:0;
+    letter-spacing:0.04em;
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold) 55%, #9c7a2e);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    text-shadow:0 2px 18px rgba(0,0,0,0.35);
+  }
+  .subtitle{
+    font-family:'Cormorant Garamond', serif;
+    font-size:clamp(1.05rem, 2vw, 1.35rem);
+    color:#e7ddc2;
+    margin-top:10px;
+    letter-spacing:0.02em;
+  }
+
+  main{
+    max-width:900px;
+    margin:0 auto;
+    padding:0 22px;
+  }
+
+  .lookup-card{
+    background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    border:1px solid rgba(201,166,70,0.35);
+    border-radius:18px;
+    padding:34px 30px;
+    box-shadow:0 20px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(4px);
+  }
+
+  label.field-label{
+    display:block;
+    font-family:'Cinzel', serif;
+    font-size:0.78rem;
+    letter-spacing:0.18em;
+    text-transform:uppercase;
+    color:var(--gold-bright);
+    margin-bottom:10px;
+  }
+
+  .select-wrap{
+    position:relative;
+  }
+  select{
+    width:100%;
+    appearance:none;
+    -webkit-appearance:none;
+    background:var(--forest-deep);
+    color:var(--cream);
+    border:1.5px solid var(--gold);
+    border-radius:10px;
+    padding:16px 46px 16px 18px;
+    font-family:'Inter', sans-serif;
+    font-size:1.02rem;
+    font-weight:500;
+    cursor:pointer;
+    transition:border-color 0.2s, box-shadow 0.2s;
+  }
+  select:hover, select:focus{
+    border-color:var(--gold-bright);
+    box-shadow:0 0 0 3px rgba(201,166,70,0.18);
+    outline:none;
+  }
+  .select-wrap::after{
+    content:"";
+    position:absolute;
+    right:18px; top:50%;
+    width:10px;height:10px;
+    border-right:2px solid var(--gold);
+    border-bottom:2px solid var(--gold);
+    transform:translateY(-65%) rotate(45deg);
+    pointer-events:none;
+  }
+
+  #resultArea{
+    margin-top:30px;
+  }
+
+  .empty-state{
+    text-align:center;
+    padding:30px 10px 6px;
+    color:#cabf9e;
+    font-family:'Cormorant Garamond', serif;
+    font-size:1.15rem;
+    font-style:italic;
+  }
+
+  .church-card{
+    animation:fadeUp 0.45s ease both;
+  }
+  @keyframes fadeUp{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .church-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:14px;
+    border-bottom:1px solid rgba(201,166,70,0.3);
+    padding-bottom:18px;
+    margin-bottom:20px;
+  }
+  .church-name{
+    font-family:'Cinzel', serif;
+    font-size:1.5rem;
+    color:var(--gold-bright);
+    margin:0 0 6px;
+  }
+  .church-meta{
+    font-size:0.88rem;
+    color:#c9bd9a;
+    line-height:1.6;
+  }
+
+  .status-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    padding:9px 18px;
+    border-radius:999px;
+    font-family:'Cinzel', serif;
+    font-size:0.78rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .status-pill.paid{
+    background:rgba(63,122,79,0.18);
+    border:1px solid var(--paid);
+    color:#8fdba0;
+  }
+  .status-pill.unpaid{
+    background:rgba(138,31,45,0.18);
+    border:1px solid var(--crimson-bright);
+    color:#ff9aa6;
+  }
+  .status-pill .dot{
+    width:8px;height:8px;border-radius:50%;
+    background:currentColor;
+    box-shadow:0 0 6px currentColor;
+  }
+
+  .events-list{
+    list-style:none;
+    margin:0 0 22px;
+    padding:0;
+    display:grid;
+    gap:10px;
+  }
+  .events-list li{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:rgba(0,0,0,0.18);
+    border:1px solid rgba(201,166,70,0.18);
+    border-left:3px solid var(--gold);
+    border-radius:8px;
+    padding:12px 16px;
+  }
+  .events-list .ev-name{
+    font-size:0.96rem;
+    color:#f2ead2;
+  }
+  .events-list .ev-fee{
+    font-family:'Cinzel', serif;
+    font-size:0.9rem;
+    color:var(--gold-bright);
+  }
+
+  .no-events{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    color:#c9bd9a;
+    padding:14px 0;
+  }
+
+  .totals-box{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:14px;
+    background:linear-gradient(120deg, rgba(201,166,70,0.14), rgba(138,31,45,0.10));
+    border:1px solid rgba(201,166,70,0.4);
+    border-radius:12px;
+    padding:20px 22px;
+  }
+  .totals-box .label{
+    font-family:'Cinzel', serif;
+    font-size:0.8rem;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:#e7ddc2;
+  }
+  .totals-box .amount{
+    font-family:'Cinzel', serif;
+    font-size:1.9rem;
+    color:var(--gold-bright);
+    font-weight:700;
+  }
+  .totals-box .strike{
+    font-size:1.05rem;
+    color:#9c8f6a;
+    text-decoration:line-through;
+    margin-right:10px;
+  }
+  .discount-note{
+    width:100%;
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:0.95rem;
+    color:#f0c96e;
+    margin-top:2px;
+  }
+
+  .pay-mode-note{
+    margin-top:14px;
+    font-size:0.85rem;
+    color:#b7ab86;
+  }
+
+  footer{
+    text-align:center;
+    margin-top:60px;
+    color:#8f8563;
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    font-size:0.95rem;
+    letter-spacing:0.03em;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .church-card{animation:none;}
+  }
+
+  @media (max-width:520px){
+    .lookup-card{padding:26px 18px;}
+    .totals-box{flex-direction:column; align-items:flex-start;}
+  }
+
+  .lookup-card + .lookup-card{ margin-top:22px; }
+
+  .paid-toggle{
+    appearance:none;
+    border:1px solid var(--gold);
+    background:rgba(201,166,70,0.12);
+    color:var(--gold-bright);
+    font-family:'Cinzel', serif;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:14px;
+    transition:background 0.2s ease;
+  }
+  .paid-toggle:hover{ background:rgba(201,166,70,0.24); }
+
+  .event-church-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:grid;
+    gap:10px;
+  }
+  .event-church-list li{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:8px;
+    background:rgba(0,0,0,0.18);
+    border:1px solid rgba(201,166,70,0.18);
+    border-left:3px solid var(--gold);
+    border-radius:8px;
+    padding:12px 16px;
+  }
+  .event-church-list .ec-name{
+    font-family:'Cinzel', serif;
+    font-size:0.92rem;
+    color:#f2ead2;
+  }
+  .event-church-list .ec-right{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .event-count{
+    font-family:'Cormorant Garamond', serif;
+    font-style:italic;
+    color:#cabf9e;
+    margin-bottom:14px;
+    font-size:1.02rem;
+  }
+
+  .card-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:center;
+    margin-top:14px;
+  }
+  .card-actions .paid-toggle{ margin-top:0; }
+
+  .print-btn{
+    appearance:none;
+    border:1px solid rgba(247,241,225,0.5);
+    background:rgba(247,241,225,0.08);
+    color:var(--cream);
+    font-family:'Cinzel', serif;
+    font-size:0.72rem;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding:8px 14px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:background 0.2s ease;
+  }
+  .print-btn:hover{ background:rgba(247,241,225,0.18); }
+
+  /* ---- Print styles: show only the record being printed ---- */
+  @media print{
+    body{ background:#fff !important; color:#000 !important; padding:0 !important; }
+    .ornament-row, header, footer, .select-wrap, .field-label,
+    .paid-toggle, .print-btn, .card-actions{ display:none !important; }
+
+    body.printing-church #eventCard,
+    body.printing-event #churchCard{ display:none !important; }
+    body:not(.printing-church):not(.printing-event) #resultArea,
+    body:not(.printing-church):not(.printing-event) #eventResultArea{ display:none !important; }
+
+    .lookup-card{
+      box-shadow:none !important;
+      border:1px solid #999 !important;
+      background:#fff !important;
+      max-width:100% !important;
+    }
+    .church-name, .event-count{ color:#000 !important; }
+    .church-meta, .ev-name, .ec-name, .totals-box .label, .pay-mode-note{ color:#333 !important; }
+    .amount, .ev-fee{ color:#000 !important; }
+    .events-list li, .event-church-list li{ border-color:#ccc !important; background:#fafafa !important; }
+    .totals-box{ background:#f2f2f2 !important; border-color:#999 !important; }
+    .status-pill.paid{ background:#e6f4ea !important; border-color:#3f7a4f !important; color:#1f5c30 !important; }
+    .status-pill.unpaid{ background:#fbe9eb !important; border-color:#8a1f2d !important; color:#7a1420 !important; }
+  }
+</style>
 </head>
 <body>
 
-    <div class="ornament-row"><span></span><span></span><span></span><span></span><span></span></div>
+  <div class="ornament-row"><span></span><span></span><span></span><span></span><span></span></div>
 
-    <header>
-        <div class="eyebrow">Cathedral High School · Youth Fellowship</div>
-        <h1>ATARAH 2026</h1>
-        <div class="subtitle">Registration &amp; Payment Lookup</div>
-    </header>
+  <header>
+    <div class="eyebrow">Cathedral High School · Youth Fellowship</div>
+    <h1>ATARAH 2026</h1>
+    <div class="subtitle">Registration &amp; Payment Lookup</div>
+  </header>
 
-    <main>
-        <div class="lookup-card" id="churchCard">
-            <label class="field-label" for="churchSelect">Select your church</label>
-            <div class="select-wrap">
-                <select id="churchSelect">
-                    <option value="">— Choose a church —</option>
-                </select>
-            </div>
-            <div id="resultArea"><div class="empty-state">Loading data from database...</div></div>
-        </div>
+  <main>
+    <div class="lookup-card" id="churchCard">
+      <label class="field-label" for="churchSelect">Select your church</label>
+      <div class="select-wrap">
+        <select id="churchSelect">
+          <option value="">— Choose a church —</option>
+        </select>
+      </div>
 
-        <div class="lookup-card" id="eventCard">
-            <label class="field-label" for="eventSelect">Browse by event</label>
-            <div class="select-wrap">
-                <select id="eventSelect">
-                    <option value="">— Choose an event —</option>
-                </select>
-            </div>
-            <div id="eventResultArea"><div class="empty-state">Loading data from database...</div></div>
-        </div>
+      <div id="resultArea">
+        <div class="empty-state">Select a church above to view its events and payment status.</div>
+      </div>
+    </div>
 
-        <footer>May every voice, every reel, and every step of the street play glorify Him. — ATARAH 2026</footer>
-    </main>
+    <div class="lookup-card" id="eventCard">
+      <label class="field-label" for="eventSelect">Browse by event</label>
+      <div class="select-wrap">
+        <select id="eventSelect">
+          <option value="">— Choose an event —</option>
+        </select>
+      </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
+      <div id="eventResultArea">
+        <div class="empty-state">Select an event above to see which churches are participating.</div>
+      </div>
+    </div>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCwZJ2nxGgldI5c5tgsMMI7G_mfQHg0LE4",
-            authDomain: "registration-tracking.firebaseapp.com",
-            projectId: "registration-tracking",
-            storageBucket: "registration-tracking.firebasestorage.app",
-            messagingSenderId: "769011346142",
-            appId: "1:769011346142:web:4444b17f2a051e0aa1f04f",
-            measurementId: "G-H9G3VTBD2Z"
-        };
+    <footer>May every voice, every reel, and every step of the street play glorify Him. — ATARAH 2026</footer>
+  </main>
 
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+<script>
 
-        let DATA = [];
-        const selectEl = document.getElementById('churchSelect');
-        const eventSelectEl = document.getElementById('eventSelect');
-        const resultArea = document.getElementById('resultArea');
-        const eventResultArea = document.getElementById('eventResultArea');
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+  import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js";
 
-        // Firestore Listener
-        onSnapshot(collection(db, "registrations"), (snapshot) => {
-            DATA = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            
-            // Re-populate dropdowns
-            selectEl.innerHTML = '<option value="">— Choose a church —</option>';
-            DATA.forEach((r, i) => {
-                const opt = document.createElement('option');
-                opt.value = i;
-                opt.textContent = r.church;
-                selectEl.appendChild(opt);
-            });
+  const firebaseConfig = {
+    apiKey: "AIzaSyCwZJ2nxGgldI5c5tgsMMI7G_mfQHg0LE4",
+    authDomain: "registration-tracking.firebaseapp.com",
+    projectId: "registration-tracking",
+    storageBucket: "registration-tracking.firebasestorage.app",
+    messagingSenderId: "769011346142",
+    appId: "1:769011346142:web:4444b17f2a051e0aa1f04f",
+    measurementId: "G-H9G3VTBD2Z"
+  };
 
-            const eventNames = Array.from(new Set(DATA.flatMap(r => r.events.map(e => e.name)))).sort();
-            eventSelectEl.innerHTML = '<option value="">— Choose an event —</option>';
-            eventNames.forEach(name => {
-                const opt = document.createElement('option');
-                opt.value = name;
-                opt.textContent = name;
-                eventSelectEl.appendChild(opt);
-            });
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-            // If a selection was active, refresh it
-            if (selectEl.value !== "") render(selectEl.value);
-            if (eventSelectEl.value !== "") renderEvent(eventSelectEl.value);
-        });
+  let DATA = []; 
+  const selectEl = document.getElementById('churchSelect');
+  const eventSelectEl = document.getElementById('eventSelect');
 
-        // UI Rendering Functions
-        window.render = function(idx) {
-            const r = DATA[idx];
-            if (!r) return;
-            const paidLabel = r.paid ? 'Paid' : 'Payment Pending';
-            resultArea.innerHTML = `<div class="church-card">
-                <h2>${r.church}</h2>
-                <span class="status-pill ${r.paid ? 'paid' : 'unpaid'}">${paidLabel}</span>
-                <button class="paid-toggle" onclick="togglePaid('${r.id}', ${r.paid})">
-                    Mark as ${r.paid ? 'Payment Pending' : 'Paid'}
-                </button>
-            </div>`;
-        };
+  // 1. Real-time sync: Listens to the 'registrations' collection
+  onSnapshot(collection(db, "registrations"), (snapshot) => {
+    DATA = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    
+    // Populate Church Dropdown
+    selectEl.innerHTML = '<option value="">— Choose a church —</option>';
+    DATA.forEach((r, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = r.church;
+      selectEl.appendChild(opt);
+    });
 
-        window.renderEvent = function(eventName) {
-            const participants = DATA.filter(r => r.events.some(e => e.name === eventName));
-            eventResultArea.innerHTML = participants.map(r => `<div>${r.church} - ${r.paid ? 'Paid' : 'Pending'}</div>`).join('');
-        };
+    // Populate Event Dropdown
+    const eventNames = Array.from(new Set(DATA.flatMap(r => r.events.map(e => e.name)))).sort();
+    eventSelectEl.innerHTML = '<option value="">— Choose an event —</option>';
+    eventNames.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      eventSelectEl.appendChild(opt);
+    });
+  });
 
-        window.togglePaid = async function(id, currentStatus) {
-            await updateDoc(doc(db, "registrations", id), { paid: !currentStatus });
-        };
+  // 2. Updated toggle logic using Firestore ID
+  window.togglePaid = async function(id, currentStatus) {
+    const docRef = doc(db, "registrations", id);
+    await updateDoc(docRef, { paid: !currentStatus });
+  };
 
-        selectEl.addEventListener('change', (e) => render(e.target.value));
-        eventSelectEl.addEventListener('change', (e) => renderEvent(e.target.value));
-    </script>
+  // 3. Update Event Listener logic
+  resultArea.addEventListener('click', (e) => {
+    const btn = e.target.closest('.paid-toggle');
+    if (btn) {
+      const churchName = btn.dataset.church;
+      const churchData = DATA.find(c => c.church === churchName);
+      if (churchData) togglePaid(churchData.id, churchData.paid);
+    }
+  });
+
+  // Note: Ensure your render/renderEvent functions refer to global DATA and trigger re-render
+</script>
+
 </body>
 </html>
+
+
+still not fixed, give the entire updated html
