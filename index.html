@@ -3,524 +3,1021 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ATARAH 2026 — Church Registration Lookup</title>
+<title>ATARAH 2026 · Registration Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --gold:#c9a646;
-    --gold-bright:#e8c874;
-    --forest:#1f3d2b;
-    --forest-deep:#12241a;
-    --crimson:#8a1f2d;
-    --crimson-bright:#b53042;
-    --cream:#f7f1e1;
-    --ink:#221a10;
-    --paid:#3f7a4f;
-    --unpaid:#8a1f2d;
+    --forest-dark:#071a10;
+    --forest:#0e2b1c;
+    --forest-light:#153a26;
+    --forest-lighter:#1d4a32;
+    --gold:#cda33a;
+    --gold-bright:#f2d675;
+    --cream:#f6f0dc;
+    --ink:#eef2ea;
+    --ink-dim:#a9bcae;
+    --danger:#c1502e;
+    --danger-bright:#e2704a;
+    --success:#4c8c5c;
+    --success-bright:#6fbd82;
+    --line: rgba(205,163,58,0.25);
+    --shadow: 0 12px 32px rgba(0,0,0,0.35);
+    --radius: 14px;
+    font-size:16px;
   }
   *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
   body{
-    margin:0;
-    min-height:100vh;
     background:
-      radial-gradient(circle at 15% 10%, rgba(201,166,70,0.10), transparent 45%),
-      radial-gradient(circle at 85% 90%, rgba(138,31,45,0.14), transparent 50%),
-      linear-gradient(160deg, var(--forest-deep) 0%, var(--forest) 55%, #16301f 100%);
-    font-family:'Inter', sans-serif;
-    color:var(--cream);
-    padding:0 0 80px 0;
+      radial-gradient(1200px 600px at 10% -10%, rgba(205,163,58,0.10), transparent 60%),
+      radial-gradient(1000px 500px at 110% 10%, rgba(205,163,58,0.08), transparent 55%),
+      linear-gradient(180deg, var(--forest-dark), #081c12 45%, #06160e 100%);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    padding-bottom:80px;
   }
+  h1,h2,h3{font-family:'Cinzel',serif; letter-spacing:.02em; margin:0;}
+  .display{font-family:'Cinzel Decorative',serif;}
+  a{color:inherit;}
 
-  .ornament-row{
-    display:flex;
-    justify-content:center;
-    gap:14px;
-    padding:22px 0 4px;
-    opacity:0.75;
+  /* ---------- Header ---------- */
+  header.top{
+    position:sticky; top:0; z-index:40;
+    background:linear-gradient(180deg, rgba(7,26,16,0.97), rgba(7,26,16,0.9));
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+    padding:14px 20px;
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
   }
-  .ornament-row span{
-    width:6px;height:6px;border-radius:50%;
-    background:var(--gold);
-    box-shadow:0 0 8px var(--gold-bright);
-  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .crown-mark{font-size:26px; filter:drop-shadow(0 0 6px rgba(242,214,117,.5));}
+  .brand-text .display{font-size:22px; color:var(--gold-bright); line-height:1;}
+  .brand-text .sub{font-size:11px; color:var(--ink-dim); letter-spacing:.14em; text-transform:uppercase; margin-top:3px;}
 
-  header{
-    text-align:center;
-    padding:10px 20px 34px;
+  .top-right{display:flex; align-items:center; gap:14px; flex-wrap:wrap;}
+  .sync-pill{
+    display:flex; align-items:center; gap:7px;
+    font-size:12px; color:var(--ink-dim);
+    border:1px solid var(--line); padding:6px 12px; border-radius:999px;
+    background:rgba(255,255,255,0.02);
+  }
+  .dot{width:8px;height:8px;border-radius:50%; background:var(--ink-dim);}
+  .dot.live{background:var(--success-bright); box-shadow:0 0 8px var(--success-bright); animation:pulse 2s infinite;}
+  .dot.off{background:var(--danger-bright);}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+  .seal{
     position:relative;
+    width:78px; height:78px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 55%, #8a6a1f 100%);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    color:#241a03; box-shadow:0 6px 18px rgba(0,0,0,.4), inset 0 0 0 3px rgba(255,255,255,.25);
+    transition:transform .35s ease;
   }
-  header::after{
-    content:"";
-    display:block;
-    width:120px;height:2px;
-    margin:22px auto 0;
-    background:linear-gradient(90deg, transparent, var(--gold), transparent);
-  }
-  .eyebrow{
-    font-family:'Cormorant Garamond', serif;
-    font-style:italic;
-    letter-spacing:0.35em;
-    text-transform:uppercase;
-    font-size:13px;
-    color:var(--gold-bright);
-    margin-bottom:10px;
-  }
-  h1{
-    font-family:'Cinzel', serif;
-    font-weight:900;
-    font-size:clamp(2.2rem, 6vw, 4rem);
-    margin:0;
-    letter-spacing:0.04em;
-    background:linear-gradient(180deg, var(--gold-bright), var(--gold) 55%, #9c7a2e);
-    -webkit-background-clip:text;
-    background-clip:text;
-    color:transparent;
-    text-shadow:0 2px 18px rgba(0,0,0,0.35);
-  }
-  .subtitle{
-    font-family:'Cormorant Garamond', serif;
-    font-size:clamp(1.05rem, 2vw, 1.35rem);
-    color:#e7ddc2;
-    margin-top:10px;
-    letter-spacing:0.02em;
-  }
+  .seal.bump{animation:sealbump .5s ease;}
+  @keyframes sealbump{0%{transform:scale(1);}30%{transform:scale(1.12) rotate(-2deg);}60%{transform:scale(0.97) rotate(1deg);}100%{transform:scale(1);}}
+  .seal .amt{font-weight:800; font-size:13px; line-height:1;}
+  .seal .lbl{font-size:8px; text-transform:uppercase; letter-spacing:.08em; margin-top:2px;}
 
-  main{
-    max-width:900px;
-    margin:0 auto;
-    padding:0 22px;
+  .manage-btn{
+    background:transparent; border:1px solid var(--gold); color:var(--gold-bright);
+    padding:9px 16px; border-radius:10px; font-family:'Inter'; font-weight:600; font-size:13px;
+    cursor:pointer; transition:.2s;
   }
+  .manage-btn:hover{background:rgba(205,163,58,0.12);}
 
-  .lookup-card{
-    background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-    border:1px solid rgba(201,166,70,0.35);
-    border-radius:18px;
-    padding:34px 30px;
-    box-shadow:0 20px 50px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05);
-    backdrop-filter: blur(4px);
+  /* ---------- Layout ---------- */
+  main{max-width:1180px; margin:0 auto; padding:28px 18px 0;}
+  .stats-row{display:grid; grid-template-columns:repeat(auto-fit, minmax(150px,1fr)); gap:12px; margin-bottom:26px;}
+  .stat-card{
+    background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.01));
+    border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px;
   }
+  .stat-card .n{font-family:'Cinzel'; font-weight:700; font-size:24px; color:var(--gold-bright);}
+  .stat-card .l{font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.08em; margin-top:2px;}
 
-  label.field-label{
-    display:block;
-    font-family:'Cinzel', serif;
-    font-size:0.78rem;
-    letter-spacing:0.18em;
-    text-transform:uppercase;
-    color:var(--gold-bright);
-    margin-bottom:10px;
+  .panel{
+    background:linear-gradient(180deg, rgba(255,255,255,0.035), rgba(255,255,255,0.012));
+    border:1px solid var(--line); border-radius:20px; padding:26px; margin-bottom:28px;
+    box-shadow:var(--shadow);
   }
+  .panel h2{font-size:20px; color:var(--gold-bright); margin-bottom:4px;}
+  .panel .hint{font-size:12.5px; color:var(--ink-dim); margin-bottom:20px;}
 
-  .select-wrap{
-    position:relative;
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:18px;}
+  @media(max-width:640px){.field-row{grid-template-columns:1fr;}}
+  label{display:block; font-size:12px; color:var(--gold-bright); text-transform:uppercase; letter-spacing:.07em; margin-bottom:6px; font-weight:600;}
+  select, input[type=text], input[type=tel]{
+    width:100%; padding:11px 12px; border-radius:10px; border:1px solid var(--line);
+    background:rgba(0,0,0,0.22); color:var(--ink); font-family:'Inter'; font-size:14.5px;
   }
-  select{
-    width:100%;
-    appearance:none;
-    -webkit-appearance:none;
-    background:var(--forest-deep);
-    color:var(--cream);
-    border:1.5px solid var(--gold);
-    border-radius:10px;
-    padding:16px 46px 16px 18px;
-    font-family:'Inter', sans-serif;
-    font-size:1.02rem;
-    font-weight:500;
-    cursor:pointer;
-    transition:border-color 0.2s, box-shadow 0.2s;
+  select:focus, input:focus{outline:2px solid var(--gold); outline-offset:1px;}
+  .inline-add{display:flex; gap:8px; margin-top:8px;}
+  .inline-add input{flex:1;}
+  .tiny-btn{
+    background:rgba(205,163,58,0.15); border:1px solid var(--gold); color:var(--gold-bright);
+    padding:9px 14px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;
   }
-  select:hover, select:focus{
-    border-color:var(--gold-bright);
-    box-shadow:0 0 0 3px rgba(201,166,70,0.18);
-    outline:none;
-  }
-  .select-wrap::after{
-    content:"";
-    position:absolute;
-    right:18px; top:50%;
-    width:10px;height:10px;
-    border-right:2px solid var(--gold);
-    border-bottom:2px solid var(--gold);
-    transform:translateY(-65%) rotate(45deg);
-    pointer-events:none;
-  }
+  .tiny-btn:hover{background:rgba(205,163,58,0.28);}
+  .tiny-btn.ghost{background:transparent; border-color:var(--line); color:var(--ink-dim);}
 
-  #resultArea{
-    margin-top:30px;
+  /* Events grid */
+  .bundle-card{
+    border:1.5px dashed var(--gold); border-radius:14px; padding:16px; margin-bottom:16px;
+    background:linear-gradient(90deg, rgba(205,163,58,0.10), rgba(205,163,58,0.02));
+    display:flex; align-items:flex-start; gap:14px; cursor:pointer;
   }
+  .bundle-card input{width:20px; height:20px; margin-top:2px; accent-color:var(--gold);}
+  .bundle-card .t{font-weight:700; color:var(--gold-bright); font-size:15px;}
+  .bundle-card .d{font-size:12.5px; color:var(--ink-dim); margin-top:3px; line-height:1.5;}
 
-  .empty-state{
-    text-align:center;
-    padding:30px 10px 6px;
-    color:#cabf9e;
-    font-family:'Cormorant Garamond', serif;
-    font-size:1.15rem;
-    font-style:italic;
+  .events-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:12px;}
+  .event-card{
+    border:1px solid var(--line); border-radius:12px; padding:13px 14px;
+    background:rgba(255,255,255,0.02); transition:.15s;
   }
+  .event-card.checked{border-color:var(--gold); background:rgba(205,163,58,0.08);}
+  .event-card.disabled{opacity:.45;}
+  .event-top{display:flex; align-items:flex-start; gap:10px; cursor:pointer;}
+  .event-top input{width:18px; height:18px; margin-top:2px; accent-color:var(--gold); flex-shrink:0;}
+  .event-name{font-weight:600; font-size:14px;}
+  .event-meta{font-size:11.5px; color:var(--ink-dim); margin-top:2px;}
+  .event-price{font-size:12.5px; color:var(--gold-bright); font-weight:700; margin-top:4px;}
+  .participant-input{margin-top:9px;}
+  .participant-input input{padding:8px 10px; font-size:13px;}
 
-  .church-card{
-    animation:fadeUp 0.45s ease both;
+  /* payment toggle */
+  .pay-toggle{display:flex; gap:12px; margin-top:6px;}
+  .pay-opt{
+    flex:1; border:1.5px solid var(--line); border-radius:12px; padding:14px; text-align:center;
+    cursor:pointer; font-weight:700; font-size:14px; color:var(--ink-dim); transition:.15s;
   }
-  @keyframes fadeUp{
-    from{opacity:0; transform:translateY(10px);}
-    to{opacity:1; transform:translateY(0);}
-  }
+  .pay-opt.paid.active{border-color:var(--success-bright); color:var(--success-bright); background:rgba(111,189,130,0.1);}
+  .pay-opt.unpaid.active{border-color:var(--danger-bright); color:var(--danger-bright); background:rgba(226,112,74,0.1);}
 
-  .church-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    flex-wrap:wrap;
-    gap:14px;
-    border-bottom:1px solid rgba(201,166,70,0.3);
-    padding-bottom:18px;
-    margin-bottom:20px;
+  .total-bar{
+    display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    border-top:1px solid var(--line); margin-top:22px; padding-top:20px;
   }
-  .church-name{
-    font-family:'Cinzel', serif;
-    font-size:1.5rem;
-    color:var(--gold-bright);
-    margin:0 0 6px;
+  .total-bar .amount{font-family:'Cinzel'; font-size:30px; color:var(--gold-bright); font-weight:700;}
+  .total-bar .amount .cur{font-size:18px; margin-right:4px;}
+  .submit-btn{
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color:#211703; border:none; padding:15px 30px; border-radius:12px;
+    font-family:'Cinzel'; font-weight:700; font-size:15px; letter-spacing:.03em; cursor:pointer;
+    box-shadow:0 8px 20px rgba(205,163,58,0.25);
   }
-  .church-meta{
-    font-size:0.88rem;
-    color:#c9bd9a;
-    line-height:1.6;
-  }
+  .submit-btn:disabled{opacity:.4; cursor:not-allowed; box-shadow:none;}
+  .submit-btn:not(:disabled):hover{filter:brightness(1.06);}
 
-  .status-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    padding:9px 18px;
-    border-radius:999px;
-    font-family:'Cinzel', serif;
-    font-size:0.78rem;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    white-space:nowrap;
-  }
-  .status-pill.paid{
-    background:rgba(63,122,79,0.18);
-    border:1px solid var(--paid);
-    color:#8fdba0;
-  }
-  .status-pill.unpaid{
-    background:rgba(138,31,45,0.18);
-    border:1px solid var(--crimson-bright);
-    color:#ff9aa6;
-  }
-  .status-pill .dot{
-    width:8px;height:8px;border-radius:50%;
-    background:currentColor;
-    box-shadow:0 0 6px currentColor;
-  }
+  .error-msg{color:var(--danger-bright); font-size:13px; margin-top:10px; display:none;}
 
-  .events-list{
-    list-style:none;
-    margin:0 0 22px;
-    padding:0;
-    display:grid;
-    gap:10px;
-  }
-  .events-list li{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    background:rgba(0,0,0,0.18);
-    border:1px solid rgba(201,166,70,0.18);
-    border-left:3px solid var(--gold);
-    border-radius:8px;
-    padding:12px 16px;
-  }
-  .events-list .ev-name{
-    font-size:0.96rem;
-    color:#f2ead2;
-  }
-  .events-list .ev-fee{
-    font-family:'Cinzel', serif;
-    font-size:0.9rem;
-    color:var(--gold-bright);
-  }
+  /* dashboard */
+  .dash-head{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px;}
+  .filters{display:flex; gap:10px; flex-wrap:wrap;}
+  .filters input, .filters select{width:auto; min-width:160px;}
 
-  .no-events{
-    font-family:'Cormorant Garamond', serif;
-    font-style:italic;
-    color:#c9bd9a;
-    padding:14px 0;
+  table{width:100%; border-collapse:collapse; font-size:13.5px;}
+  thead th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--gold-bright);
+    padding:10px 12px; border-bottom:1px solid var(--line);
   }
+  tbody td{padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); vertical-align:top;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  .badge{display:inline-block; padding:3px 9px; border-radius:999px; font-size:11px; font-weight:700; margin:2px 4px 2px 0;}
+  .badge.bundle{background:rgba(205,163,58,0.2); color:var(--gold-bright); border:1px solid var(--gold);}
+  .badge.ev{background:rgba(255,255,255,0.06); color:var(--ink-dim); border:1px solid var(--line);}
+  .badge.ev.match{background:rgba(205,163,58,0.22); color:var(--gold-bright); border:1px solid var(--gold); font-weight:700;}
 
-  .totals-box{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    gap:14px;
-    background:linear-gradient(120deg, rgba(201,166,70,0.14), rgba(138,31,45,0.10));
-    border:1px solid rgba(201,166,70,0.4);
-    border-radius:12px;
-    padding:20px 22px;
+  .event-summary-bar{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    background:rgba(205,163,58,0.08); border:1px solid var(--line); border-radius:12px;
+    padding:12px 16px; margin-bottom:14px; font-size:13.5px;
   }
-  .totals-box .label{
-    font-family:'Cinzel', serif;
-    font-size:0.8rem;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    color:#e7ddc2;
-  }
-  .totals-box .amount{
-    font-family:'Cinzel', serif;
-    font-size:1.9rem;
-    color:var(--gold-bright);
-    font-weight:700;
-  }
-  .totals-box .strike{
-    font-size:1.05rem;
-    color:#9c8f6a;
-    text-decoration:line-through;
-    margin-right:10px;
-  }
-  .discount-note{
-    width:100%;
-    font-family:'Cormorant Garamond', serif;
-    font-style:italic;
-    font-size:0.95rem;
-    color:#f0c96e;
-    margin-top:2px;
-  }
+  .event-summary-bar .esb-title{font-weight:700; color:var(--gold-bright); flex:1 1 100%; font-size:14px;}
+  .event-summary-bar .esb-stat b{color:var(--ink); margin-right:5px;}
+  .event-summary-bar .esb-stat.paid b{color:var(--success-bright);}
+  .event-summary-bar .esb-stat.unpaid b{color:var(--danger-bright);}
+  .status-pill{border:none; padding:6px 12px; border-radius:999px; font-size:11.5px; font-weight:700; cursor:pointer;}
+  .status-pill.paid{background:rgba(111,189,130,0.15); color:var(--success-bright); border:1px solid var(--success-bright);}
+  .status-pill.unpaid{background:rgba(226,112,74,0.15); color:var(--danger-bright); border:1px solid var(--danger-bright);}
+  .del-btn{background:none; border:none; color:var(--ink-dim); cursor:pointer; font-size:16px;}
+  .del-btn:hover{color:var(--danger-bright);}
+  .empty-row td{text-align:center; color:var(--ink-dim); padding:30px; font-style:italic;}
 
-  .pay-mode-note{
-    margin-top:14px;
-    font-size:0.85rem;
-    color:#b7ab86;
+  /* modal */
+  .overlay{
+    position:fixed; inset:0; background:rgba(2,10,6,0.72); backdrop-filter:blur(3px);
+    display:none; align-items:center; justify-content:center; z-index:100; padding:20px;
   }
+  .overlay.open{display:flex;}
+  .modal{
+    background:linear-gradient(180deg, #0f2b1c, #0a2016); border:1px solid var(--gold); border-radius:18px;
+    max-width:560px; width:100%; max-height:88vh; overflow-y:auto; padding:26px; box-shadow:0 20px 60px rgba(0,0,0,.6);
+  }
+  .modal h3{color:var(--gold-bright); font-size:19px; margin-bottom:16px;}
+  .modal .row-close{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .close-x{background:none; border:none; color:var(--ink-dim); font-size:22px; cursor:pointer; line-height:1;}
 
-  footer{
-    text-align:center;
-    margin-top:60px;
-    color:#8f8563;
-    font-family:'Cormorant Garamond', serif;
-    font-style:italic;
-    font-size:0.95rem;
-    letter-spacing:0.03em;
+  .summary-line{display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px dashed var(--line); font-size:13.5px;}
+  .summary-line b{color:var(--ink);}
+  .summary-events{margin-top:6px; margin-bottom:14px;}
+  .modal-actions{display:flex; gap:10px; margin-top:20px;}
+  .modal-actions .tiny-btn.ghost{flex:1; text-align:center; padding:12px;}
+  .modal-actions .submit-btn{flex:1; padding:12px;}
+
+  /* manage churches modal specifics */
+  .church-search{margin-bottom:14px;}
+  .church-list{max-height:340px; overflow-y:auto; border:1px solid var(--line); border-radius:12px; padding:6px;}
+  .church-row{padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);}
+  .church-row:last-child{border-bottom:none;}
+  .church-name-edit{display:flex; gap:8px; margin-bottom:8px;}
+  .church-name-edit input{flex:1; font-weight:600;}
+  .contacts-wrap{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
+  .contact-chip{
+    display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.05);
+    border:1px solid var(--line); padding:5px 10px; border-radius:999px; font-size:12.5px;
   }
+  .contact-chip button{background:none; border:none; color:var(--ink-dim); cursor:pointer; font-size:13px;}
+  .contact-chip button:hover{color:var(--danger-bright);}
+  .add-contact-inline{display:flex; gap:6px;}
+  .add-contact-inline input{width:150px; padding:6px 8px; font-size:12.5px;}
+  .new-church-box{margin-top:16px; border-top:1px solid var(--line); padding-top:16px;}
+
+  .toast-wrap{position:fixed; bottom:22px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center;}
+  .toast{
+    background:var(--forest-light); border:1px solid var(--gold); color:var(--ink);
+    padding:12px 20px; border-radius:10px; font-size:13.5px; box-shadow:var(--shadow);
+    animation:toastIn .25s ease;
+  }
+  .toast.err{border-color:var(--danger-bright); color:var(--danger-bright);}
+  @keyframes toastIn{from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
+
+  footer{text-align:center; color:var(--ink-dim); font-size:12px; padding:30px 20px 10px;}
+
+  ::-webkit-scrollbar{width:8px; height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--gold); border-radius:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
 
   @media (prefers-reduced-motion: reduce){
-    .church-card{animation:none;}
-  }
-
-  @media (max-width:520px){
-    .lookup-card{padding:26px 18px;}
-    .totals-box{flex-direction:column; align-items:flex-start;}
-  }
-
-  .lookup-card + .lookup-card{ margin-top:22px; }
-
-  .paid-toggle{
-    appearance:none;
-    border:1px solid var(--gold);
-    background:rgba(201,166,70,0.12);
-    color:var(--gold-bright);
-    font-family:'Cinzel', serif;
-    font-size:0.72rem;
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-    padding:8px 14px;
-    border-radius:8px;
-    cursor:pointer;
-    margin-top:14px;
-    transition:background 0.2s ease;
-  }
-  .paid-toggle:hover{ background:rgba(201,166,70,0.24); }
-
-  .event-church-list{
-    list-style:none;
-    margin:0;
-    padding:0;
-    display:grid;
-    gap:10px;
-  }
-  .event-church-list li{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    flex-wrap:wrap;
-    gap:8px;
-    background:rgba(0,0,0,0.18);
-    border:1px solid rgba(201,166,70,0.18);
-    border-left:3px solid var(--gold);
-    border-radius:8px;
-    padding:12px 16px;
-  }
-  .event-church-list .ec-name{
-    font-family:'Cinzel', serif;
-    font-size:0.92rem;
-    color:#f2ead2;
-  }
-  .event-church-list .ec-right{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .event-count{
-    font-family:'Cormorant Garamond', serif;
-    font-style:italic;
-    color:#cabf9e;
-    margin-bottom:14px;
-    font-size:1.02rem;
-  }
-
-  .card-actions{
-    display:flex;
-    flex-wrap:wrap;
-    gap:12px;
-    align-items:center;
-    margin-top:14px;
-  }
-  .card-actions .paid-toggle{ margin-top:0; }
-
-  .print-btn{
-    appearance:none;
-    border:1px solid rgba(247,241,225,0.5);
-    background:rgba(247,241,225,0.08);
-    color:var(--cream);
-    font-family:'Cinzel', serif;
-    font-size:0.72rem;
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-    padding:8px 14px;
-    border-radius:8px;
-    cursor:pointer;
-    transition:background 0.2s ease;
-  }
-  .print-btn:hover{ background:rgba(247,241,225,0.18); }
-
-  /* ---- Print styles: show only the record being printed ---- */
-  @media print{
-    body{ background:#fff !important; color:#000 !important; padding:0 !important; }
-    .ornament-row, header, footer, .select-wrap, .field-label,
-    .paid-toggle, .print-btn, .card-actions{ display:none !important; }
-
-    body.printing-church #eventCard,
-    body.printing-event #churchCard{ display:none !important; }
-    body:not(.printing-church):not(.printing-event) #resultArea,
-    body:not(.printing-church):not(.printing-event) #eventResultArea{ display:none !important; }
-
-    .lookup-card{
-      box-shadow:none !important;
-      border:1px solid #999 !important;
-      background:#fff !important;
-      max-width:100% !important;
-    }
-    .church-name, .event-count{ color:#000 !important; }
-    .church-meta, .ev-name, .ec-name, .totals-box .label, .pay-mode-note{ color:#333 !important; }
-    .amount, .ev-fee{ color:#000 !important; }
-    .events-list li, .event-church-list li{ border-color:#ccc !important; background:#fafafa !important; }
-    .totals-box{ background:#f2f2f2 !important; border-color:#999 !important; }
-    .status-pill.paid{ background:#e6f4ea !important; border-color:#3f7a4f !important; color:#1f5c30 !important; }
-    .status-pill.unpaid{ background:#fbe9eb !important; border-color:#8a1f2d !important; color:#7a1420 !important; }
+    .dot.live, .seal.bump{animation:none;}
   }
 </style>
 </head>
 <body>
 
-  <div class="ornament-row"><span></span><span></span><span></span><span></span><span></span></div>
+<header class="top">
+  <div class="brand">
+    <span class="crown-mark">👑</span>
+    <div class="brand-text">
+      <div class="display">ATARAH 2026</div>
+      <div class="sub">Registration Desk · Crowned With Purpose</div>
+    </div>
+  </div>
+  <div class="top-right">
+    <div class="sync-pill"><span class="dot off" id="syncDot"></span><span id="syncText">Connecting…</span></div>
+    <div class="seal" id="seal">
+      <div class="amt" id="sealAmt">₹0</div>
+      <div class="lbl">Collected</div>
+    </div>
+    <button class="manage-btn" id="openManageBtn">✎ Manage Churches</button>
+  </div>
+</header>
 
-  <header>
-    <div class="eyebrow">Cathedral High School · Youth Fellowship</div>
-    <h1>ATARAH 2026</h1>
-    <div class="subtitle">Registration &amp; Payment Lookup</div>
-  </header>
+<main>
 
-  <main>
-    <div class="lookup-card" id="churchCard">
-      <label class="field-label" for="churchSelect">Select your church</label>
-      <div class="select-wrap">
+  <section class="stats-row" id="statsRow">
+    <div class="stat-card"><div class="n" id="statTotal">0</div><div class="l">Registrations</div></div>
+    <div class="stat-card"><div class="n" id="statPaid">0</div><div class="l">Paid</div></div>
+    <div class="stat-card"><div class="n" id="statUnpaid">0</div><div class="l">Unpaid</div></div>
+    <div class="stat-card"><div class="n" id="statChurches">0</div><div class="l">Churches Registered</div></div>
+    <div class="stat-card"><div class="n" id="statAmount">₹0</div><div class="l">Total Collected</div></div>
+  </section>
+
+  <!-- REGISTRATION FORM -->
+  <section class="panel">
+    <h2>New Registration</h2>
+    <div class="hint">Fill in the details below, then review and confirm — nothing is saved until you tap "Confirm Submission".</div>
+
+    <div class="field-row">
+      <div>
+        <label for="churchSelect">Church</label>
         <select id="churchSelect">
-          <option value="">— Choose a church —</option>
+          <option value="">— Select church —</option>
         </select>
+        <div class="inline-add">
+          <input type="text" id="newChurchQuick" placeholder="Type a new church name…">
+          <button class="tiny-btn" id="addChurchQuickBtn">+ Add Church</button>
+        </div>
       </div>
-
-      <div id="resultArea">
-        <div class="empty-state">Select a church above to view its events and payment status.</div>
+      <div>
+        <label for="contactSelect">Contact Number</label>
+        <select id="contactSelect">
+          <option value="">— Select church first —</option>
+        </select>
+        <div class="inline-add">
+          <input type="tel" id="newContactQuick" placeholder="Add another number…">
+          <button class="tiny-btn" id="addContactQuickBtn">+ Add Number</button>
+        </div>
       </div>
     </div>
 
-    <div class="lookup-card" id="eventCard">
-      <label class="field-label" for="eventSelect">Browse by event</label>
-      <div class="select-wrap">
-        <select id="eventSelect">
-          <option value="">— Choose an event —</option>
-        </select>
+    <div class="field-row">
+      <div>
+        <label for="deskName">Desk / Volunteer Name <span style="opacity:.6; text-transform:none; letter-spacing:0;">(optional)</span></label>
+        <input type="text" id="deskName" placeholder="e.g. Desk 2 — Priya">
       </div>
+      <div></div>
+    </div>
 
-      <div id="eventResultArea">
-        <div class="empty-state">Select an event above to see which churches are participating.</div>
+    <label style="margin-top:6px;">Events</label>
+    <div class="bundle-card" id="bundleCard">
+      <input type="checkbox" id="bundleCheckbox">
+      <div>
+        <div class="t">🎟️ Register All 10 Events — Bundle Offer ₹5,000</div>
+        <div class="d">Best value — every participant also gets a complimentary ₹100 food coupon. Selecting this locks in all 10 events for this church at the flat bundle price.</div>
       </div>
     </div>
 
-    <footer>May every voice, every reel, and every step of the street play glorify Him. — ATARAH 2026</footer>
-  </main>
+    <div class="events-grid" id="eventsGrid"></div>
+
+    <label style="margin-top:22px;">Payment Status</label>
+    <div class="pay-toggle">
+      <div class="pay-opt paid" data-val="paid">✅ Paid</div>
+      <div class="pay-opt unpaid" data-val="unpaid">⏳ Unpaid / Pay Later</div>
+    </div>
+
+    <div class="error-msg" id="formError"></div>
+
+    <div class="total-bar">
+      <div><span class="amount"><span class="cur">₹</span><span id="liveTotal">0</span></span></div>
+      <button class="submit-btn" id="reviewBtn">Review &amp; Submit →</button>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="panel">
+    <div class="dash-head">
+      <h2 style="margin-bottom:0;">Live Registrations <span style="color:var(--ink-dim); font-size:12px; font-weight:400;">— synced across all desks</span></h2>
+      <div class="filters">
+        <input type="text" id="filterSearch" placeholder="Search church or contact…">
+        <select id="filterEvent">
+          <option value="all">All events</option>
+        </select>
+        <select id="filterStatus">
+          <option value="all">All statuses</option>
+          <option value="paid">Paid only</option>
+          <option value="unpaid">Unpaid only</option>
+        </select>
+      </div>
+    </div>
+    <div class="event-summary-bar" id="eventSummaryBar" style="display:none;"></div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th><th>Church</th><th>Contact</th><th>Events</th><th>Amount</th><th>Status</th><th>Desk</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="regTableBody">
+          <tr class="empty-row"><td colspan="8">No registrations yet — the first one you confirm will appear here on every device.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>ATARAH 2026 · CSI Shanthi Church Youth Fellowship · Cathedral High School, Bangalore · 11th July 2026</footer>
+
+<!-- CONFIRM MODAL -->
+<div class="overlay" id="confirmOverlay">
+  <div class="modal">
+    <div class="row-close"><h3>Confirm Registration</h3><button class="close-x" id="closeConfirm">✕</button></div>
+    <div id="confirmBody"></div>
+    <div class="modal-actions">
+      <button class="tiny-btn ghost" id="cancelConfirm">← Go Back &amp; Edit</button>
+      <button class="submit-btn" id="finalSubmit">Confirm Submission</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE CHURCHES MODAL -->
+<div class="overlay" id="manageOverlay">
+  <div class="modal" style="max-width:640px;">
+    <div class="row-close"><h3>Manage Churches &amp; Contact Numbers</h3><button class="close-x" id="closeManage">✕</button></div>
+    <input type="text" class="church-search" id="manageSearch" placeholder="Search churches…">
+    <div class="church-list" id="churchList"></div>
+    <div class="new-church-box">
+      <label>Add a New Church</label>
+      <div class="field-row" style="margin-bottom:8px;">
+        <input type="text" id="newChurchName" placeholder="Church name">
+        <input type="tel" id="newChurchContact" placeholder="Contact number">
+      </div>
+      <button class="tiny-btn" id="addChurchFullBtn" style="width:100%;">+ Add Church</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Firebase (compat SDK) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
+/* ============================================================
+   FIREBASE SETUP
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyCwZJ2nxGgldI5c5tgsMMI7G_mfQHg0LE4",
+  authDomain: "registration-tracking.firebaseapp.com",
+  projectId: "registration-tracking",
+  storageBucket: "registration-tracking.firebasestorage.app",
+  messagingSenderId: "769011346142",
+  appId: "1:769011346142:web:4444b17f2a051e0aa1f04f",
+  measurementId: "G-H9G3VTBD2Z"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const churchesCol = db.collection('churches');
+const regsCol = db.collection('registrations');
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, onSnapshot, doc, updateDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+/* ============================================================
+   STATIC EVENT DATA (from atarah-sc.github.io/atarahwebsite)
+   ============================================================ */
+const EVENTS = [
+  {id:'shortvideo', name:'God in 180 — Short Video', category:'Visual Storytelling', price:800},
+  {id:'photography', name:'Psalm-thing Snap-Tastic — Photography', category:'Visual Arts', price:500},
+  {id:'reel', name:'Reel & Reveal — Reel Making', category:'Digital Media', price:500},
+  {id:'quiz', name:'Crown of Wisdom — Bible Quiz', category:'Biblical Knowledge', price:800},
+  {id:'potpourri', name:'Kingdom Kaleidoscope — Potpourri', category:'Fun & Games', price:800},
+  {id:'pickspeak', name:'Rule the Mic — Pick & Speak', category:'Spoken Word', price:500},
+  {id:'facepaint', name:'Holy Makeover Studio — Face Painting', category:'Creative Arts', price:500},
+  {id:'streetplay', name:'Rule the Streets — Street Play', category:'Performing Arts', price:800},
+  {id:'solo', name:'One Voice, One Faith — Solo Singing', category:'Music', price:500},
+  {id:'group', name:'Crowned in Harmony — Group Singing', category:'Battle of the Bands', price:1000},
+];
+const BUNDLE_PRICE = 5000;
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCwZJ2nxGgldI5c5tgsMMI7G_mfQHg0LE4",
-    authDomain: "registration-tracking.firebaseapp.com",
-    projectId: "registration-tracking",
-    storageBucket: "registration-tracking.firebasestorage.app",
-    messagingSenderId: "769011346142",
-    appId: "1:769011346142:web:4444b17f2a051e0aa1f04f",
-    measurementId: "G-H9G3VTBD2Z"
-  };
+const SEED_CHURCHES = [
+  ["CSI Grace Church","7019521676"],
+  ["CSI Kannada Church Electronic City","9845102441"],
+  ["Roshan J","7892678927"],
+  ["St Thomas Church","7406803323"],
+  ["Wesley English Church","7026622106"],
+  ["St. Peter's Telugu Church","8884241735"],
+  ["St Andrew's Church","6363730165"],
+  ["St Paul's Church","7022833047"],
+  ["St Luke's Church","7259543178"],
+  ["Shantha Oliver Memorial Church","9902293235"],
+  ["St. Peter's Tamil Church","8940871673"],
+  ["CSI Bethany Church Channapatana","9606167955"],
+  ["CSI Christ The King Church","9620643702"],
+  ["CSI Christha Jyothi Alaya, Kathriguppe","6362964412"],
+  ["All Saints' Church","9591018293"],
+  ["CSI Covenant Church","9743366530"],
+  ["Wesley Tamil Church Haines Road","8105405135"],
+  ["East Parade Tamil Church","8105403147"],
+  ["CSI David Memorial Church","9845430547"],
+  ["Wesley Tamil Church - Ashok Nagar","7019014505"],
+  ["Christhu Jeeva Jyothi Alayam","9113517297"],
+  ["CSI Christha Prabhalaya, Yelahanka","8553868600"],
+  ["Bishop Sargant Memorial Church","7349370838"],
+  ["CSI Sawday Memorial Church","7026460109"],
+  ["St Stephen's Church","9900931616"],
+  ["Christha Krupalaya Church","9886002097"],
+  ["Clarence","9742823349"],
+  ["Eaton Memorial Church","9591017954"],
+  ["Memorial Church Whitefield","7353281735"],
+  ["CSI Holy Redeemer Church","8105433355"],
+  ["St Matthews Church","9742099238"],
+  ["CSI Yesukrupalaya","8217314296"],
+  ["CSI Zion Church","9740117147"],
+  ["Rice Memorial Church","8296033533"],
+  ["Christ The Savior Church","8904737965"],
+  ["Rishab Madan","6361661702"],
+  ["CSI Memorial Church","8618221091"],
+  ["CSI Christ Church, Hosur","9481657858"],
+];
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+/* ============================================================
+   STATE
+   ============================================================ */
+let churches = [];       // [{id, name, contacts:[]}]
+let registrations = [];  // [{id, church, contact, events:[{id,name,price,participant}], bundle, amount, paid, timestamp, desk}]
+let selectedEvents = {}; // id -> {participant}
+let bundleOn = false;
+let payStatus = null;    // 'paid' | 'unpaid'
+let seeded = false;
 
-  // Global variables
-  window.DATA = [];
-  const selectEl = document.getElementById('churchSelect');
-  const eventSelectEl = document.getElementById('eventSelect');
+/* ============================================================
+   UTIL
+   ============================================================ */
+function toast(msg, isErr){
+  const wrap = document.getElementById('toastWrap');
+  const t = document.createElement('div');
+  t.className = 'toast' + (isErr ? ' err' : '');
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(()=>{ t.remove(); }, 3200);
+}
+function fmtMoney(n){ return '₹' + Number(n).toLocaleString('en-IN'); }
+function fmtTime(ts){
+  if(!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('en-IN', {day:'2-digit', month:'short'}) + ' · ' +
+         d.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit'});
+}
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
-  // 1. Fetch data in real-time
-  onSnapshot(collection(db, "registrations"), (snapshot) => {
-    window.DATA = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    
-    // Refresh dropdowns if empty
-    if(selectEl.options.length <= 1) {
-      window.DATA.forEach((r, i) => {
-        const opt = document.createElement('option');
-        opt.value = r.church; // Use name as ID
-        opt.textContent = r.church;
-        selectEl.appendChild(opt);
-      });
-      
-      const eventNames = Array.from(new Set(window.DATA.flatMap(r => r.events.map(e => e.name)))).sort();
-      eventNames.forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        eventSelectEl.appendChild(opt);
-      });
+/* ============================================================
+   SEED CHURCHES (only if collection is empty — one time)
+   ============================================================ */
+async function seedIfEmpty(){
+  const snap = await churchesCol.limit(1).get();
+  if(!snap.empty) return;
+  const batch = db.batch();
+  SEED_CHURCHES.forEach(([name, contact]) => {
+    const ref = churchesCol.doc();
+    batch.set(ref, {name, contacts:[contact], createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+  });
+  await batch.commit();
+}
+
+/* ============================================================
+   FIRESTORE LISTENERS (real-time sync across all desk devices)
+   ============================================================ */
+function initListeners(){
+  churchesCol.orderBy('name').onSnapshot(snap => {
+    churches = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderChurchSelect();
+    renderManageList();
+    document.getElementById('statChurches').textContent =
+      new Set(registrations.map(r=>r.church)).size;
+    markSynced(true);
+  }, err => { console.error(err); markSynced(false); });
+
+  regsCol.orderBy('timestamp','desc').onSnapshot(snap => {
+    registrations = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    renderDashboard();
+    markSynced(true);
+  }, err => { console.error(err); markSynced(false); });
+}
+
+function markSynced(ok){
+  const dot = document.getElementById('syncDot');
+  const txt = document.getElementById('syncText');
+  if(ok){ dot.className = 'dot live'; txt.textContent = 'Live · synced'; }
+  else { dot.className = 'dot off'; txt.textContent = 'Connection issue'; }
+}
+
+/* ============================================================
+   RENDER: CHURCH + CONTACT SELECTS
+   ============================================================ */
+function renderChurchSelect(){
+  const sel = document.getElementById('churchSelect');
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Select church —</option>' +
+    churches.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+  if(churches.some(c=>c.id===current)) sel.value = current;
+  renderContactSelect();
+}
+function renderContactSelect(){
+  const churchId = document.getElementById('churchSelect').value;
+  const sel = document.getElementById('contactSelect');
+  const church = churches.find(c=>c.id===churchId);
+  if(!church){
+    sel.innerHTML = '<option value="">— Select church first —</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  const contacts = church.contacts || [];
+  sel.innerHTML = (contacts.length ? '' : '<option value="">— No numbers saved —</option>') +
+    contacts.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
+}
+
+/* ============================================================
+   RENDER: EVENTS GRID
+   ============================================================ */
+function renderEventsGrid(){
+  const grid = document.getElementById('eventsGrid');
+  grid.innerHTML = EVENTS.map(ev => {
+    const checked = !!selectedEvents[ev.id];
+    return `
+    <div class="event-card ${checked?'checked':''} ${bundleOn?'disabled':''}" data-ev="${ev.id}">
+      <label class="event-top">
+        <input type="checkbox" ${checked?'checked':''} ${bundleOn?'disabled':''} data-ev-cb="${ev.id}">
+        <div style="flex:1;">
+          <div class="event-name">${escapeHtml(ev.name)}</div>
+          <div class="event-meta">${escapeHtml(ev.category)}</div>
+          <div class="event-price">${bundleOn ? 'Included in bundle' : fmtMoney(ev.price)}</div>
+        </div>
+      </label>
+      ${(checked && !bundleOn) ? `
+        <div class="participant-input">
+          <input type="text" placeholder="Participant / team name (optional)" data-ev-participant="${ev.id}" value="${escapeHtml(selectedEvents[ev.id]?.participant || '')}">
+        </div>` : ''}
+    </div>`;
+  }).join('');
+
+  grid.querySelectorAll('[data-ev-cb]').forEach(cb => {
+    cb.addEventListener('change', e => {
+      const id = e.target.getAttribute('data-ev-cb');
+      if(e.target.checked) selectedEvents[id] = {participant:''};
+      else delete selectedEvents[id];
+      renderEventsGrid();
+      updateTotal();
+    });
+  });
+  grid.querySelectorAll('[data-ev-participant]').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const id = e.target.getAttribute('data-ev-participant');
+      if(selectedEvents[id]) selectedEvents[id].participant = e.target.value;
+    });
+  });
+}
+
+function updateTotal(){
+  let total = 0;
+  if(bundleOn) total = BUNDLE_PRICE;
+  else total = Object.keys(selectedEvents).reduce((sum,id) => {
+    const ev = EVENTS.find(e=>e.id===id);
+    return sum + (ev ? ev.price : 0);
+  }, 0);
+  document.getElementById('liveTotal').textContent = total.toLocaleString('en-IN');
+  return total;
+}
+
+/* ============================================================
+   RENDER: DASHBOARD
+   ============================================================ */
+function renderDashboard(){
+  const search = document.getElementById('filterSearch').value.trim().toLowerCase();
+  const status = document.getElementById('filterStatus').value;
+  const eventFilter = document.getElementById('filterEvent').value;
+
+  let rows = registrations.filter(r => {
+    if(status !== 'all' && r.paid !== (status==='paid')) return false;
+    if(search){
+      const hay = (r.church + ' ' + r.contact).toLowerCase();
+      if(!hay.includes(search)) return false;
     }
-
-    // Refresh display
-    if(selectEl.value) render(selectEl.value);
-    if(eventSelectEl.value) renderEvent(eventSelectEl.value);
+    if(eventFilter !== 'all'){
+      const inEvents = r.bundle || (r.events||[]).some(e => e.id === eventFilter);
+      if(!inEvents) return false;
+    }
+    return true;
   });
 
-  // 2. Global Toggle Function (Syncs to Database)
-  window.togglePaid = async function(churchName) {
-    const r = window.DATA.find(x => x.church === churchName);
-    if (!r) return;
-    const docRef = doc(db, "registrations", r.id);
-    await updateDoc(docRef, { paid: !r.paid });
-  };
-</script>
+  // event-specific summary bar
+  const summaryBar = document.getElementById('eventSummaryBar');
+  if(eventFilter === 'all'){
+    summaryBar.style.display = 'none';
+  } else {
+    const ev = EVENTS.find(e=>e.id===eventFilter);
+    const paidCount = rows.filter(r=>r.paid).length;
+    const unpaidCount = rows.length - paidCount;
+    const bundleCount = rows.filter(r=>r.bundle).length;
+    summaryBar.style.display = 'flex';
+    summaryBar.innerHTML = `
+      <div class="esb-title">👑 ${escapeHtml(ev ? ev.name : 'Event')} — Churches Registered</div>
+      <div class="esb-stat"><b>${rows.length}</b>church${rows.length===1?'':'es'} registered</div>
+      <div class="esb-stat paid"><b>${paidCount}</b>paid</div>
+      <div class="esb-stat unpaid"><b>${unpaidCount}</b>unpaid</div>
+      ${bundleCount ? `<div class="esb-stat"><b>${bundleCount}</b>via bundle</div>` : ''}
+    `;
+  }
 
+  const tbody = document.getElementById('regTableBody');
+  if(rows.length === 0){
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">No registrations match — try clearing the search or filter.</td></tr>`;
+  } else {
+    tbody.innerHTML = rows.map(r => {
+      const evBadges = r.bundle
+        ? `<span class="badge bundle">🎟️ All 10 Events (Bundle)</span>`
+        : (r.events||[]).map(e => `<span class="badge ev${e.id===eventFilter?' match':''}">${escapeHtml(e.name.split('—')[0].trim())}${e.participant?' · '+escapeHtml(e.participant):''}</span>`).join('');
+      return `
+      <tr>
+        <td>${fmtTime(r.timestamp)}</td>
+        <td><b>${escapeHtml(r.church)}</b></td>
+        <td>${escapeHtml(r.contact||'—')}</td>
+        <td>${evBadges}</td>
+        <td>${fmtMoney(r.amount)}</td>
+        <td><button class="status-pill ${r.paid?'paid':'unpaid'}" data-toggle-paid="${r.id}" data-current="${r.paid}">${r.paid?'✅ Paid':'⏳ Unpaid'}</button></td>
+        <td>${escapeHtml(r.desk||'—')}</td>
+        <td><button class="del-btn" data-del="${r.id}" title="Delete registration">🗑</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  tbody.querySelectorAll('[data-toggle-paid]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-toggle-paid');
+      const cur = btn.getAttribute('data-current') === 'true';
+      try{
+        await regsCol.doc(id).update({paid: !cur});
+        toast(!cur ? 'Marked as paid.' : 'Marked as unpaid.');
+      }catch(e){ toast('Could not update status.', true); }
+    });
+  });
+  tbody.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!confirm('Delete this registration? This cannot be undone.')) return;
+      const id = btn.getAttribute('data-del');
+      try{
+        await regsCol.doc(id).delete();
+        toast('Registration deleted.');
+      }catch(e){ toast('Could not delete.', true); }
+    });
+  });
+
+  // stats
+  const total = registrations.length;
+  const paid = registrations.filter(r=>r.paid).length;
+  const unpaid = total - paid;
+  const amount = registrations.reduce((s,r)=> s + (Number(r.amount)||0), 0);
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statPaid').textContent = paid;
+  document.getElementById('statUnpaid').textContent = unpaid;
+  document.getElementById('statAmount').textContent = fmtMoney(amount);
+  document.getElementById('statChurches').textContent = new Set(registrations.map(r=>r.church)).size;
+
+  const sealAmt = document.getElementById('sealAmt');
+  const newTxt = fmtMoney(amount);
+  if(sealAmt.textContent !== newTxt){
+    sealAmt.textContent = newTxt;
+    const seal = document.getElementById('seal');
+    seal.classList.remove('bump'); void seal.offsetWidth; seal.classList.add('bump');
+  }
+}
+
+/* ============================================================
+   FORM: church / contact selection handlers
+   ============================================================ */
+document.getElementById('churchSelect').addEventListener('change', renderContactSelect);
+
+document.getElementById('addChurchQuickBtn').addEventListener('click', async () => {
+  const input = document.getElementById('newChurchQuick');
+  const name = input.value.trim();
+  if(!name){ toast('Enter a church name first.', true); return; }
+  try{
+    const ref = await churchesCol.add({name, contacts:[], createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    input.value = '';
+    setTimeout(()=>{ document.getElementById('churchSelect').value = ref.id; renderContactSelect(); }, 300);
+    toast('Church added: ' + name);
+  }catch(e){ toast('Could not add church.', true); }
+});
+
+document.getElementById('addContactQuickBtn').addEventListener('click', async () => {
+  const churchId = document.getElementById('churchSelect').value;
+  const input = document.getElementById('newContactQuick');
+  const num = input.value.trim();
+  if(!churchId){ toast('Select a church first.', true); return; }
+  if(!num){ toast('Enter a contact number first.', true); return; }
+  try{
+    await churchesCol.doc(churchId).update({contacts: firebase.firestore.FieldValue.arrayUnion(num)});
+    input.value = '';
+    setTimeout(()=>{ document.getElementById('contactSelect').value = num; }, 300);
+    toast('Number added.');
+  }catch(e){ toast('Could not add number.', true); }
+});
+
+/* bundle toggle */
+document.getElementById('bundleCard').addEventListener('click', (e) => {
+  if(e.target.id === 'bundleCheckbox') return;
+  const cb = document.getElementById('bundleCheckbox');
+  cb.checked = !cb.checked;
+  cb.dispatchEvent(new Event('change'));
+});
+document.getElementById('bundleCheckbox').addEventListener('change', e => {
+  bundleOn = e.target.checked;
+  if(bundleOn){
+    selectedEvents = {};
+    EVENTS.forEach(ev => selectedEvents[ev.id] = {participant:''});
+  } else {
+    selectedEvents = {};
+  }
+  renderEventsGrid();
+  updateTotal();
+});
+
+/* payment toggle */
+document.querySelectorAll('.pay-opt').forEach(opt => {
+  opt.addEventListener('click', () => {
+    payStatus = opt.getAttribute('data-val');
+    document.querySelectorAll('.pay-opt').forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+  });
+});
+
+/* ============================================================
+   REVIEW / CONFIRM SUBMIT
+   ============================================================ */
+document.getElementById('reviewBtn').addEventListener('click', () => {
+  const errBox = document.getElementById('formError');
+  errBox.style.display = 'none';
+
+  const churchId = document.getElementById('churchSelect').value;
+  const church = churches.find(c=>c.id===churchId);
+  const contact = document.getElementById('contactSelect').value;
+  const eventIds = Object.keys(selectedEvents);
+  const total = updateTotal();
+
+  if(!church){ showError('Please select a church.'); return; }
+  if(!contact){ showError('Please select or add a contact number.'); return; }
+  if(eventIds.length === 0){ showError('Select at least one event, or choose the bundle offer.'); return; }
+  if(!payStatus){ showError('Please choose whether this registration is Paid or Unpaid.'); return; }
+
+  function showError(msg){ errBox.textContent = '⚠ ' + msg; errBox.style.display='block'; }
+
+  const desk = document.getElementById('deskName').value.trim();
+  const eventsDetail = bundleOn
+    ? EVENTS.map(ev => ({id:ev.id, name:ev.name, price:0, participant: selectedEvents[ev.id]?.participant || ''}))
+    : eventIds.map(id => {
+        const ev = EVENTS.find(e=>e.id===id);
+        return {id, name:ev.name, price:ev.price, participant: selectedEvents[id]?.participant || ''};
+      });
+
+  window.__pendingReg = {
+    church: church.name, churchId: church.id, contact,
+    events: eventsDetail, bundle: bundleOn, amount: total,
+    paid: payStatus === 'paid', desk
+  };
+
+  const body = document.getElementById('confirmBody');
+  body.innerHTML = `
+    <div class="summary-line"><span>Church</span><b>${escapeHtml(church.name)}</b></div>
+    <div class="summary-line"><span>Contact</span><b>${escapeHtml(contact)}</b></div>
+    <div class="summary-line"><span>Desk / Volunteer</span><b>${escapeHtml(desk||'—')}</b></div>
+    <div class="summary-events">
+      <div style="font-size:12px; color:var(--gold-bright); text-transform:uppercase; letter-spacing:.06em; margin:12px 0 6px;">Events</div>
+      ${bundleOn
+        ? `<span class="badge bundle">🎟️ All 10 Events — Bundle Offer</span>`
+        : eventsDetail.map(e => `<div style="font-size:13.5px; padding:4px 0;">• ${escapeHtml(e.name)} ${e.participant? ' — '+escapeHtml(e.participant):''} <span style="color:var(--gold-bright); float:right;">${fmtMoney(e.price)}</span></div>`).join('')
+      }
+    </div>
+    <div class="summary-line"><span>Payment Status</span><b style="color:${payStatus==='paid'?'var(--success-bright)':'var(--danger-bright)'}">${payStatus==='paid'?'✅ Paid':'⏳ Unpaid'}</b></div>
+    <div class="summary-line" style="border-bottom:none; padding-top:14px;"><span style="font-size:16px;">Total Amount</span><b style="font-size:20px; color:var(--gold-bright);">${fmtMoney(total)}</b></div>
+  `;
+  document.getElementById('confirmOverlay').classList.add('open');
+});
+
+document.getElementById('closeConfirm').addEventListener('click', () => document.getElementById('confirmOverlay').classList.remove('open'));
+document.getElementById('cancelConfirm').addEventListener('click', () => document.getElementById('confirmOverlay').classList.remove('open'));
+
+document.getElementById('finalSubmit').addEventListener('click', async () => {
+  const btn = document.getElementById('finalSubmit');
+  const data = window.__pendingReg;
+  if(!data) return;
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try{
+    await regsCol.add({...data, timestamp: firebase.firestore.FieldValue.serverTimestamp()});
+    document.getElementById('confirmOverlay').classList.remove('open');
+    toast('✅ Registration confirmed for ' + data.church + '.');
+    resetForm();
+  }catch(e){
+    console.error(e);
+    toast('Could not submit — check your connection and try again.', true);
+  }finally{
+    btn.disabled = false; btn.textContent = 'Confirm Submission';
+  }
+});
+
+function resetForm(){
+  document.getElementById('churchSelect').value = '';
+  renderContactSelect();
+  document.getElementById('deskName').value = '';
+  document.getElementById('newChurchQuick').value = '';
+  document.getElementById('newContactQuick').value = '';
+  bundleOn = false;
+  document.getElementById('bundleCheckbox').checked = false;
+  selectedEvents = {};
+  payStatus = null;
+  document.querySelectorAll('.pay-opt').forEach(o=>o.classList.remove('active'));
+  document.getElementById('formError').style.display = 'none';
+  renderEventsGrid();
+  updateTotal();
+}
+
+/* ============================================================
+   FILTERS
+   ============================================================ */
+document.getElementById('filterSearch').addEventListener('input', renderDashboard);
+document.getElementById('filterStatus').addEventListener('change', renderDashboard);
+document.getElementById('filterEvent').addEventListener('change', renderDashboard);
+
+function populateEventFilter(){
+  const sel = document.getElementById('filterEvent');
+  sel.innerHTML = '<option value="all">All events</option>' +
+    EVENTS.map(ev => `<option value="${ev.id}">${escapeHtml(ev.name)}</option>`).join('');
+}
+
+/* ============================================================
+   MANAGE CHURCHES MODAL
+   ============================================================ */
+document.getElementById('openManageBtn').addEventListener('click', () => {
+  document.getElementById('manageOverlay').classList.add('open');
+  renderManageList();
+});
+document.getElementById('closeManage').addEventListener('click', () => document.getElementById('manageOverlay').classList.remove('open'));
+
+document.getElementById('manageSearch').addEventListener('input', renderManageList);
+
+function renderManageList(){
+  const overlay = document.getElementById('manageOverlay');
+  if(!overlay.classList.contains('open')) return;
+  const q = document.getElementById('manageSearch').value.trim().toLowerCase();
+  const list = document.getElementById('churchList');
+  const filtered = churches.filter(c => c.name.toLowerCase().includes(q));
+  if(filtered.length === 0){
+    list.innerHTML = `<div style="padding:20px; text-align:center; color:var(--ink-dim); font-style:italic;">No churches match.</div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(c => `
+    <div class="church-row" data-church-id="${c.id}">
+      <div class="church-name-edit">
+        <input type="text" value="${escapeHtml(c.name)}" data-rename="${c.id}">
+        <button class="tiny-btn ghost" data-save-name="${c.id}">Save</button>
+      </div>
+      <div class="contacts-wrap">
+        ${(c.contacts||[]).map(n => `
+          <span class="contact-chip">${escapeHtml(n)}<button data-remove-contact="${c.id}" data-num="${escapeHtml(n)}">✕</button></span>
+        `).join('')}
+        <span class="add-contact-inline">
+          <input type="tel" placeholder="+ number" data-newnum="${c.id}">
+          <button class="tiny-btn" data-addnum="${c.id}">Add</button>
+        </span>
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('[data-save-name]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-save-name');
+      const input = list.querySelector(`[data-rename="${id}"]`);
+      const name = input.value.trim();
+      if(!name){ toast('Church name cannot be empty.', true); return; }
+      try{ await churchesCol.doc(id).update({name}); toast('Church renamed.'); }
+      catch(e){ toast('Could not rename.', true); }
+    });
+  });
+  list.querySelectorAll('[data-remove-contact]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-remove-contact');
+      const num = btn.getAttribute('data-num');
+      if(!confirm('Remove this number?')) return;
+      try{ await churchesCol.doc(id).update({contacts: firebase.firestore.FieldValue.arrayRemove(num)}); toast('Number removed.'); }
+      catch(e){ toast('Could not remove.', true); }
+    });
+  });
+  list.querySelectorAll('[data-addnum]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-addnum');
+      const input = list.querySelector(`[data-newnum="${id}"]`);
+      const num = input.value.trim();
+      if(!num){ toast('Enter a number first.', true); return; }
+      try{ await churchesCol.doc(id).update({contacts: firebase.firestore.FieldValue.arrayUnion(num)}); input.value=''; toast('Number added.'); }
+      catch(e){ toast('Could not add.', true); }
+    });
+  });
+}
+
+document.getElementById('addChurchFullBtn').addEventListener('click', async () => {
+  const nameInp = document.getElementById('newChurchName');
+  const contactInp = document.getElementById('newChurchContact');
+  const name = nameInp.value.trim();
+  const contact = contactInp.value.trim();
+  if(!name){ toast('Enter a church name.', true); return; }
+  try{
+    await churchesCol.add({name, contacts: contact ? [contact] : [], createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    nameInp.value=''; contactInp.value='';
+    toast('Church added: ' + name);
+  }catch(e){ toast('Could not add church.', true); }
+});
+
+/* close overlays on backdrop click */
+document.querySelectorAll('.overlay').forEach(ov => {
+  ov.addEventListener('click', e => { if(e.target === ov) ov.classList.remove('open'); });
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+(async function init(){
+  renderEventsGrid();
+  updateTotal();
+  populateEventFilter();
+  try{
+    await seedIfEmpty();
+  }catch(e){ console.warn('Seed skipped:', e.message); }
+  initListeners();
+})();
+</script>
 </body>
 </html>
