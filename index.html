@@ -271,6 +271,15 @@
   .add-contact-inline input{width:150px; padding:6px 8px; font-size:12.5px;}
   .new-church-box{margin-top:16px; border-top:1px solid var(--line); padding-top:16px;}
 
+  .assign-code-row{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 6px; border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  .assign-code-row:last-child{border-bottom:none;}
+  .assign-code-row .acr-name{font-size:13.5px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .assign-code-row input{width:90px; flex:none; text-transform:uppercase; text-align:center; font-weight:700; padding:8px 8px; font-size:13px;}
+  .assign-code-row input.dirty{border-color:var(--gold-bright); box-shadow:0 0 0 1px var(--gold-bright);}
+
   .toast-wrap{position:fixed; bottom:22px; left:50%; transform:translateX(-50%); z-index:200; display:flex; flex-direction:column; gap:8px; align-items:center;}
   .toast{
     background:var(--forest-light); border:1px solid var(--gold); color:var(--ink);
@@ -330,6 +339,7 @@
       <div class="amt" id="sealAmt">₹0</div>
       <div class="lbl">Collected</div>
     </div>
+    <button class="manage-btn" id="openAssignCodesBtn">🏷️ Assign Codes</button>
     <button class="manage-btn" id="openManageBtn">✎ Manage Churches</button>
   </div>
 </header>
@@ -484,6 +494,19 @@
   </div>
 </div>
 
+<!-- ASSIGN CODES MODAL (bulk) -->
+<div class="overlay" id="assignCodesOverlay">
+  <div class="modal" style="max-width:640px;">
+    <div class="row-close"><h3>Assign Church Codes</h3><button class="close-x" id="closeAssignCodes">✕</button></div>
+    <div class="hint" style="margin-bottom:14px;">Give every church a short code (e.g. GRC, STP) for quick lookup at the desk. Fill in as many as you like, then save all at once. Leave blank to skip a church.</div>
+    <div class="church-list" id="assignCodesList" style="max-height:420px;"></div>
+    <div class="modal-actions">
+      <button class="tiny-btn ghost" id="closeAssignCodes2" style="flex:1; text-align:center; padding:12px;">Close</button>
+      <button class="submit-btn" id="saveAllCodesBtn" style="flex:1; padding:12px;">💾 Save All Codes</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast-wrap" id="toastWrap"></div>
 <div id="printArea"></div>
 
@@ -623,6 +646,7 @@ function initListeners(){
     churches = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderChurchSelect();
     renderManageList();
+    renderAssignCodesList();
     document.getElementById('statChurches').textContent =
       new Set(registrations.map(r=>r.church)).size;
     markSynced(true);
@@ -1176,6 +1200,72 @@ document.getElementById('openManageBtn').addEventListener('click', () => {
 document.getElementById('closeManage').addEventListener('click', () => document.getElementById('manageOverlay').classList.remove('open'));
 
 document.getElementById('manageSearch').addEventListener('input', renderManageList);
+
+/* ============================================================
+   ASSIGN CODES MODAL (bulk)
+   ============================================================ */
+document.getElementById('openAssignCodesBtn').addEventListener('click', () => {
+  document.getElementById('assignCodesOverlay').classList.add('open');
+  renderAssignCodesList();
+});
+document.getElementById('closeAssignCodes').addEventListener('click', () => document.getElementById('assignCodesOverlay').classList.remove('open'));
+document.getElementById('closeAssignCodes2').addEventListener('click', () => document.getElementById('assignCodesOverlay').classList.remove('open'));
+
+function renderAssignCodesList(){
+  const overlay = document.getElementById('assignCodesOverlay');
+  if(!overlay.classList.contains('open')) return;
+  const list = document.getElementById('assignCodesList');
+  const sorted = [...churches].sort((a,b) => a.name.localeCompare(b.name));
+  list.innerHTML = sorted.map(c => `
+    <div class="assign-code-row" data-row-id="${c.id}">
+      <div class="acr-name">${escapeHtml(c.name)}</div>
+      <input type="text" value="${escapeHtml(c.code||'')}" placeholder="—" maxlength="8" data-code-input="${c.id}">
+    </div>
+  `).join('');
+  list.querySelectorAll('[data-code-input]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      inp.value = inp.value.toUpperCase();
+      inp.classList.add('dirty');
+    });
+  });
+}
+
+document.getElementById('saveAllCodesBtn').addEventListener('click', async () => {
+  const list = document.getElementById('assignCodesList');
+  const inputs = [...list.querySelectorAll('[data-code-input]')];
+
+  // build map of id -> new code, only for changed rows
+  const changes = [];
+  const seenCodes = new Map(); // code -> churchId, across ALL churches (changed + unchanged)
+  churches.forEach(c => { if(c.code) seenCodes.set(c.code.toUpperCase(), c.id); });
+
+  for(const inp of inputs){
+    const id = inp.getAttribute('data-code-input');
+    const code = inp.value.trim().toUpperCase();
+    const church = churches.find(c => c.id === id);
+    if(!church) continue;
+    if(code && seenCodes.has(code) && seenCodes.get(code) !== id){
+      toast(`Code "${code}" is used more than once (check ${church.name}).`, true);
+      return;
+    }
+    if(code) seenCodes.set(code, id);
+    if((church.code||'') !== code){
+      changes.push({id, code});
+    }
+  }
+
+  if(changes.length === 0){ toast('No changes to save.'); return; }
+
+  try{
+    const batch = db.batch();
+    changes.forEach(({id, code}) => batch.update(churchesCol.doc(id), {code}));
+    await batch.commit();
+    list.querySelectorAll('input.dirty').forEach(inp => inp.classList.remove('dirty'));
+    toast(`Saved codes for ${changes.length} church${changes.length===1?'':'es'}.`);
+  }catch(e){
+    toast('Could not save codes.', true);
+  }
+});
 
 function renderManageList(){
   const overlay = document.getElementById('manageOverlay');
