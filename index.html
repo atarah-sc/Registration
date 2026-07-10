@@ -174,6 +174,24 @@
 
   .error-msg{color:var(--danger-bright); font-size:13px; margin-top:10px; display:none;}
 
+  .edit-banner{
+    background:rgba(205,163,58,0.14); border:1px solid var(--gold); color:var(--gold-bright);
+    padding:11px 14px; border-radius:10px; font-size:13.5px; margin-bottom:16px;
+  }
+  .dup-warning{
+    background:rgba(226,112,74,0.12); border:1px solid var(--danger-bright); color:var(--ink);
+    padding:13px 15px; border-radius:12px; font-size:13.5px; margin-bottom:16px; line-height:1.6;
+  }
+  .dup-warning b{color:var(--danger-bright);}
+  .dup-warning .dup-actions{display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;}
+  .dup-warning .tiny-btn{background:rgba(205,163,58,0.18);}
+
+  .print-btn{
+    background:rgba(255,255,255,0.04); border:1px solid var(--line); color:var(--ink);
+    padding:9px 14px; border-radius:9px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;
+  }
+  .print-btn:hover{border-color:var(--gold); color:var(--gold-bright);}
+
   /* dashboard */
   .dash-head{display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:16px;}
   .filters{display:flex; gap:10px; flex-wrap:wrap;}
@@ -264,6 +282,29 @@
   @media (prefers-reduced-motion: reduce){
     .dot.live, .seal.bump{animation:none;}
   }
+
+  #printArea{display:none;}
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{
+      display:block; position:absolute; top:0; left:0; width:100%;
+      padding:10px; color:#111; background:#fff;
+    }
+    #printArea h1{font-family:'Cinzel', serif; font-size:20px; margin:0 0 2px; color:#111;}
+    #printArea .p-sub{font-size:12px; color:#444; margin-bottom:14px;}
+    #printArea .p-meta{font-size:11.5px; color:#333; margin-bottom:4px;}
+    #printArea .p-summary{
+      display:flex; gap:22px; margin:12px 0 16px; padding:10px 0; border-top:1px solid #999; border-bottom:1px solid #999;
+      font-size:12.5px; flex-wrap:wrap;
+    }
+    #printArea .p-summary b{display:block; font-size:15px;}
+    #printArea table{width:100%; border-collapse:collapse; font-size:11.5px;}
+    #printArea th{text-align:left; border-bottom:1.5px solid #111; padding:6px 8px; font-size:10.5px; text-transform:uppercase;}
+    #printArea td{padding:6px 8px; border-bottom:1px solid #ccc; vertical-align:top;}
+    #printArea .p-status-paid{color:#1a6b2b; font-weight:700;}
+    #printArea .p-status-unpaid{color:#a33418; font-weight:700;}
+  }
 </style>
 </head>
 <body>
@@ -302,6 +343,13 @@
   <section class="panel">
     <h2>New Registration</h2>
     <div class="hint">Fill in the details below, then review and confirm — nothing is saved until you tap "Confirm Submission".</div>
+
+    <div class="edit-banner" id="editModeBanner" style="display:none;">
+      ✎ Editing existing registration for <b id="editModeChurchName"></b>.
+      <button class="tiny-btn ghost" id="cancelEditBtn" style="margin-left:10px;">Cancel Edit</button>
+    </div>
+
+    <div class="dup-warning" id="duplicateWarning" style="display:none;"></div>
 
     <div class="field-row">
       <div>
@@ -373,6 +421,7 @@
           <option value="paid">Paid only</option>
           <option value="unpaid">Unpaid only</option>
         </select>
+        <button class="print-btn" id="printBtn">🖨 Print Results</button>
       </div>
     </div>
     <div class="event-summary-bar" id="eventSummaryBar" style="display:none;"></div>
@@ -424,6 +473,7 @@
 </div>
 
 <div class="toast-wrap" id="toastWrap"></div>
+<div id="printArea"></div>
 
 <!-- Firebase (compat SDK) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -514,6 +564,8 @@ let selectedEvents = {}; // id -> {participant}
 let bundleOn = false;
 let payStatus = null;    // 'paid' | 'unpaid'
 let seeded = false;
+let editingRegId = null;         // set when editing an existing registration instead of creating a new one
+let duplicateDismissedFor = null; // churchId the desk explicitly chose to register again despite an existing entry
 
 /* ============================================================
    UTIL
@@ -567,6 +619,7 @@ function initListeners(){
   regsCol.orderBy('timestamp','desc').onSnapshot(snap => {
     registrations = snap.docs.map(d => ({id:d.id, ...d.data()}));
     renderDashboard();
+    checkAndShowDuplicate();
     markSynced(true);
   }, err => { console.error(err); markSynced(false); });
 }
@@ -603,6 +656,78 @@ function renderContactSelect(){
   sel.innerHTML = (contacts.length ? '' : '<option value="">— No numbers saved —</option>') +
     contacts.map(n => `<option value="${escapeHtml(n)}">${escapeHtml(n)}</option>`).join('');
 }
+
+/* ============================================================
+   DUPLICATE DETECTION + EDIT EXISTING ENTRY
+   ============================================================ */
+function checkAndShowDuplicate(){
+  const warnBox = document.getElementById('duplicateWarning');
+  const churchId = document.getElementById('churchSelect').value;
+
+  if(!churchId || editingRegId || duplicateDismissedFor === churchId){
+    warnBox.style.display = 'none';
+    return;
+  }
+  // registrations is already ordered newest-first (query orderBy timestamp desc)
+  const existing = registrations.find(r => r.churchId === churchId);
+  if(!existing){
+    warnBox.style.display = 'none';
+    return;
+  }
+  const church = churches.find(c => c.id === churchId);
+  warnBox.style.display = 'block';
+  warnBox.innerHTML = `
+    ⚠ <b>${escapeHtml(church ? church.name : existing.church)}</b> already has a registration on file —
+    ${existing.bundle ? 'All 10 Events (Bundle)' : (existing.events||[]).map(e=>escapeHtml(e.name.split('—')[0].trim())).join(', ')}
+    · ${fmtMoney(existing.amount)} · ${existing.paid ? '✅ Paid' : '⏳ Unpaid'} · submitted ${fmtTime(existing.timestamp)}${existing.desk ? ' by '+escapeHtml(existing.desk) : ''}.
+    <div class="dup-actions">
+      <button class="tiny-btn" id="dupEditBtn">✎ Edit This Entry</button>
+      <button class="tiny-btn ghost" id="dupIgnoreBtn">+ This Is a Separate Registration</button>
+    </div>
+  `;
+  document.getElementById('dupEditBtn').addEventListener('click', () => loadRegistrationForEdit(existing.id));
+  document.getElementById('dupIgnoreBtn').addEventListener('click', () => {
+    duplicateDismissedFor = churchId;
+    warnBox.style.display = 'none';
+  });
+}
+
+function loadRegistrationForEdit(id){
+  const reg = registrations.find(r => r.id === id);
+  if(!reg) return;
+  editingRegId = id;
+  document.getElementById('duplicateWarning').style.display = 'none';
+
+  document.getElementById('churchSelect').value = reg.churchId;
+  renderContactSelect();
+  document.getElementById('contactSelect').value = reg.contact || '';
+  document.getElementById('deskName').value = reg.desk || '';
+
+  bundleOn = !!reg.bundle;
+  document.getElementById('bundleCheckbox').checked = bundleOn;
+  selectedEvents = {};
+  (reg.events || []).forEach(e => { selectedEvents[e.id] = {participant: e.participant || ''}; });
+  renderEventsGrid();
+  updateTotal();
+
+  payStatus = reg.paid ? 'paid' : 'unpaid';
+  document.querySelectorAll('.pay-opt').forEach(o => o.classList.toggle('active', o.getAttribute('data-val') === payStatus));
+
+  const banner = document.getElementById('editModeBanner');
+  banner.style.display = 'block';
+  document.getElementById('editModeChurchName').textContent = reg.church;
+  document.getElementById('reviewBtn').textContent = 'Review & Update →';
+
+  document.querySelector('main').scrollIntoView({behavior:'smooth', block:'start'});
+  toast('Loaded existing entry for ' + reg.church + ' — make your changes and confirm to update it.');
+}
+
+document.getElementById('cancelEditBtn').addEventListener('click', () => {
+  editingRegId = null;
+  document.getElementById('editModeBanner').style.display = 'none';
+  document.getElementById('reviewBtn').textContent = 'Review & Submit →';
+  resetForm();
+});
 
 /* ============================================================
    RENDER: EVENTS GRID
@@ -659,12 +784,12 @@ function updateTotal(){
 /* ============================================================
    RENDER: DASHBOARD
    ============================================================ */
-function renderDashboard(){
+function getFilteredRegistrations(){
   const search = document.getElementById('filterSearch').value.trim().toLowerCase();
   const status = document.getElementById('filterStatus').value;
   const eventFilter = document.getElementById('filterEvent').value;
 
-  let rows = registrations.filter(r => {
+  const rows = registrations.filter(r => {
     if(status !== 'all' && r.paid !== (status==='paid')) return false;
     if(search){
       const hay = (r.church + ' ' + r.contact).toLowerCase();
@@ -676,6 +801,11 @@ function renderDashboard(){
     }
     return true;
   });
+  return {rows, search, status, eventFilter};
+}
+
+function renderDashboard(){
+  const {rows, eventFilter} = getFilteredRegistrations();
 
   // event-specific summary bar
   const summaryBar = document.getElementById('eventSummaryBar');
@@ -715,11 +845,14 @@ function renderDashboard(){
         <td>${fmtMoney(r.amount)}</td>
         <td><button class="status-pill ${r.paid?'paid':'unpaid'}" data-toggle-paid="${r.id}" data-current="${r.paid}">${r.paid?'✅ Paid':'⏳ Unpaid'}</button></td>
         <td>${escapeHtml(r.desk||'—')}</td>
-        <td><button class="del-btn" data-del="${r.id}" title="Delete registration">🗑</button></td>
+        <td><button class="del-btn" data-edit="${r.id}" title="Edit registration">✎</button> <button class="del-btn" data-del="${r.id}" title="Delete registration">🗑</button></td>
       </tr>`;
     }).join('');
   }
 
+  tbody.querySelectorAll('[data-edit]').forEach(btn => {
+    btn.addEventListener('click', () => loadRegistrationForEdit(btn.getAttribute('data-edit')));
+  });
   tbody.querySelectorAll('[data-toggle-paid]').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-toggle-paid');
@@ -768,7 +901,11 @@ function renderDashboard(){
 /* ============================================================
    FORM: church / contact selection handlers
    ============================================================ */
-document.getElementById('churchSelect').addEventListener('change', renderContactSelect);
+document.getElementById('churchSelect').addEventListener('change', () => {
+  renderContactSelect();
+  duplicateDismissedFor = null;
+  checkAndShowDuplicate();
+});
 
 document.getElementById('addChurchQuickBtn').addEventListener('click', async () => {
   const input = document.getElementById('newChurchQuick');
@@ -842,6 +979,17 @@ document.getElementById('reviewBtn').addEventListener('click', () => {
   if(eventIds.length === 0){ showError('Select at least one event, or choose the bundle offer.'); return; }
   if(!payStatus){ showError('Please choose whether this registration is Paid or Unpaid.'); return; }
 
+  // Hard stop on duplicates unless we're editing the existing entry or the desk explicitly chose to add a separate one
+  if(!editingRegId && duplicateDismissedFor !== churchId){
+    const existing = registrations.find(r => r.churchId === churchId);
+    if(existing){
+      showError(`${church.name} already has a registration on file. Use "✎ Edit This Entry" or "+ This Is a Separate Registration" in the warning above before submitting.`);
+      checkAndShowDuplicate();
+      document.getElementById('duplicateWarning').scrollIntoView({behavior:'smooth', block:'center'});
+      return;
+    }
+  }
+
   function showError(msg){ errBox.textContent = '⚠ ' + msg; errBox.style.display='block'; }
 
   const desk = document.getElementById('deskName').value.trim();
@@ -858,8 +1006,13 @@ document.getElementById('reviewBtn').addEventListener('click', () => {
     paid: payStatus === 'paid', desk
   };
 
+  const isEdit = !!editingRegId;
+  document.querySelector('#confirmOverlay h3').textContent = isEdit ? 'Confirm Update' : 'Confirm Registration';
+  document.getElementById('finalSubmit').textContent = isEdit ? 'Confirm Update' : 'Confirm Submission';
+
   const body = document.getElementById('confirmBody');
   body.innerHTML = `
+    ${isEdit ? `<div class="edit-banner" style="margin-bottom:14px;">✎ This will update the existing registration for ${escapeHtml(church.name)}, not create a new one.</div>` : ''}
     <div class="summary-line"><span>Church</span><b>${escapeHtml(church.name)}</b></div>
     <div class="summary-line"><span>Contact</span><b>${escapeHtml(contact)}</b></div>
     <div class="summary-line"><span>Desk / Volunteer</span><b>${escapeHtml(desk||'—')}</b></div>
@@ -883,17 +1036,25 @@ document.getElementById('finalSubmit').addEventListener('click', async () => {
   const btn = document.getElementById('finalSubmit');
   const data = window.__pendingReg;
   if(!data) return;
-  btn.disabled = true; btn.textContent = 'Submitting…';
+  const isEdit = !!editingRegId;
+  btn.disabled = true; btn.textContent = isEdit ? 'Updating…' : 'Submitting…';
   try{
-    await regsCol.add({...data, timestamp: firebase.firestore.FieldValue.serverTimestamp()});
+    if(isEdit){
+      await regsCol.doc(editingRegId).update({...data, lastUpdated: firebase.firestore.FieldValue.serverTimestamp()});
+      toast('✅ Registration updated for ' + data.church + '.');
+    } else {
+      await regsCol.add({...data, timestamp: firebase.firestore.FieldValue.serverTimestamp()});
+      toast('✅ Registration confirmed for ' + data.church + '.');
+    }
     document.getElementById('confirmOverlay').classList.remove('open');
-    toast('✅ Registration confirmed for ' + data.church + '.');
+    editingRegId = null;
+    document.getElementById('editModeBanner').style.display = 'none';
     resetForm();
   }catch(e){
     console.error(e);
     toast('Could not submit — check your connection and try again.', true);
   }finally{
-    btn.disabled = false; btn.textContent = 'Confirm Submission';
+    btn.disabled = false; btn.textContent = isEdit ? 'Confirm Update' : 'Confirm Submission';
   }
 });
 
@@ -907,8 +1068,11 @@ function resetForm(){
   document.getElementById('bundleCheckbox').checked = false;
   selectedEvents = {};
   payStatus = null;
+  duplicateDismissedFor = null;
   document.querySelectorAll('.pay-opt').forEach(o=>o.classList.remove('active'));
   document.getElementById('formError').style.display = 'none';
+  document.getElementById('duplicateWarning').style.display = 'none';
+  document.getElementById('reviewBtn').textContent = 'Review & Submit →';
   renderEventsGrid();
   updateTotal();
 }
@@ -919,6 +1083,63 @@ function resetForm(){
 document.getElementById('filterSearch').addEventListener('input', renderDashboard);
 document.getElementById('filterStatus').addEventListener('change', renderDashboard);
 document.getElementById('filterEvent').addEventListener('change', renderDashboard);
+
+document.getElementById('printBtn').addEventListener('click', () => {
+  buildPrintArea();
+  window.print();
+});
+
+function buildPrintArea(){
+  const {rows, search, status, eventFilter} = getFilteredRegistrations();
+  const ev = eventFilter !== 'all' ? EVENTS.find(e=>e.id===eventFilter) : null;
+
+  const filterBits = [];
+  if(ev) filterBits.push('Event: ' + ev.name);
+  if(status !== 'all') filterBits.push('Status: ' + (status === 'paid' ? 'Paid only' : 'Unpaid only'));
+  if(search) filterBits.push('Search: "' + search + '"');
+  const filterDesc = filterBits.length ? filterBits.join(' · ') : 'All registrations';
+
+  const totalAmt = rows.reduce((s,r)=>s+(Number(r.amount)||0),0);
+  const paidAmt = rows.filter(r=>r.paid).reduce((s,r)=>s+(Number(r.amount)||0),0);
+  const unpaidAmt = totalAmt - paidAmt;
+  const paidCount = rows.filter(r=>r.paid).length;
+
+  const tableRows = rows.map(r => {
+    const evText = r.bundle
+      ? 'All 10 Events (Bundle)'
+      : (r.events||[]).map(e => e.name.split('—')[0].trim() + (e.participant ? ' ('+e.participant+')' : '')).join(', ');
+    return `<tr>
+      <td>${fmtTime(r.timestamp)}</td>
+      <td>${escapeHtml(r.church)}</td>
+      <td>${escapeHtml(r.contact||'—')}</td>
+      <td>${escapeHtml(evText)}</td>
+      <td>${fmtMoney(r.amount)}</td>
+      <td class="${r.paid?'p-status-paid':'p-status-unpaid'}">${r.paid?'PAID':'UNPAID'}</td>
+      <td>${escapeHtml(r.desk||'—')}</td>
+    </tr>`;
+  }).join('');
+
+  const generatedAt = new Date().toLocaleString('en-IN', {day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
+
+  document.getElementById('printArea').innerHTML = `
+    <h1>ATARAH 2026 — Registration Report</h1>
+    <div class="p-sub">CSI Shanthi Church Youth Fellowship · Cathedral High School · 11th July 2026</div>
+    <div class="p-meta">Filters applied: ${escapeHtml(filterDesc)}</div>
+    <div class="p-meta">Generated: ${generatedAt}</div>
+    <div class="p-summary">
+      <div><b>${rows.length}</b>registrations</div>
+      <div><b>${paidCount}</b>paid</div>
+      <div><b>${rows.length - paidCount}</b>unpaid</div>
+      <div><b>${fmtMoney(totalAmt)}</b>total</div>
+      <div><b>${fmtMoney(paidAmt)}</b>collected</div>
+      <div><b>${fmtMoney(unpaidAmt)}</b>pending</div>
+    </div>
+    <table>
+      <thead><tr><th>Time</th><th>Church</th><th>Contact</th><th>Events</th><th>Amount</th><th>Status</th><th>Desk</th></tr></thead>
+      <tbody>${tableRows || '<tr><td colspan="7">No registrations match the current filters.</td></tr>'}</tbody>
+    </table>
+  `;
+}
 
 function populateEventFilter(){
   const sel = document.getElementById('filterEvent');
