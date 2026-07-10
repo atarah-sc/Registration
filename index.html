@@ -447,8 +447,17 @@
     <div style="overflow-x:auto;">
       <table>
         <thead>
-          <tr>
-            <th>Time</th><th>Church</th><th>Contact</th><th>Events</th><th>Amount</th><th>Status</th><th>Desk</th><th></th>
+        <tr>
+    <th>Time</th>
+    <th>Church</th>
+    <th>Code</th>
+    <th>Contact</th>
+    <th>Events</th>
+    <th>Amount</th>
+    <th>Status</th>
+    <th>Desk</th>
+    <th></th>
+</tr>
           </tr>
         </thead>
         <tbody id="regTableBody">
@@ -876,9 +885,14 @@ function renderDashboard(){
         : (r.events||[]).map(e => `<span class="badge ev${e.id===eventFilter?' match':''}">${escapeHtml(e.name.split('—')[0].trim())}${e.participant?' · '+escapeHtml(e.participant):''}</span>`).join('');
       return `
       <tr>
-        <td>${fmtTime(r.timestamp)}</td>
-        <td>${(() => { const ch = churches.find(c=>c.id===r.churchId); return ch && ch.code ? `<span class="code-badge">${escapeHtml(ch.code)}</span>` : ''; })()}<b>${escapeHtml(r.church)}</b></td>
-        <td>${escapeHtml(r.contact||'—')}</td>
+const ch = churches.find(c=>c.id===r.churchId);
+
+return `
+<tr>
+<td>${fmtTime(r.timestamp)}</td>
+<td><b>${escapeHtml(r.church)}</b></td>
+<td>${escapeHtml(ch?.code || "—")}</td>
+<td>${escapeHtml(r.contact||'—')}</td>
         <td>${evBadges}</td>
         <td>${fmtMoney(r.amount)}</td>
         <td><button class="status-pill ${r.paid?'paid':'unpaid'}" data-toggle-paid="${r.id}" data-current="${r.paid}">${r.paid?'✅ Paid':'⏳ Unpaid'}</button></td>
@@ -1152,11 +1166,13 @@ function buildPrintArea(){
       ? 'All 10 Events (Bundle)'
       : (r.events||[]).map(e => e.name.split('—')[0].trim() + (e.participant ? ' ('+e.participant+')' : '')).join(', ');
     const ch = churches.find(c=>c.id===r.churchId);
-    const churchDisplay = (ch && ch.code ? '['+ch.code+'] ' : '') + r.church;
-    return `<tr>
-      <td>${fmtTime(r.timestamp)}</td>
-      <td>${escapeHtml(churchDisplay)}</td>
-      <td>${escapeHtml(r.contact||'—')}</td>
+const churchCode = ch?.code || "";
+
+return `<tr>
+<td>${fmtTime(r.timestamp)}</td>
+<td>${escapeHtml(r.church)}</td>
+<td>${escapeHtml(churchCode || "—")}</td>
+<td>${escapeHtml(r.contact||'—')}</td>
       <td>${escapeHtml(evText)}</td>
       <td>${fmtMoney(r.amount)}</td>
       <td class="${r.paid?'p-status-paid':'p-status-unpaid'}">${r.paid?'PAID':'UNPAID'}</td>
@@ -1180,8 +1196,19 @@ function buildPrintArea(){
       <div><b>${fmtMoney(unpaidAmt)}</b>pending</div>
     </div>
     <table>
-      <thead><tr><th>Time</th><th>Church</th><th>Contact</th><th>Events</th><th>Amount</th><th>Status</th><th>Desk</th></tr></thead>
-      <tbody>${tableRows || '<tr><td colspan="7">No registrations match the current filters.</td></tr>'}</tbody>
+      <thead>
+<tr>
+<th>Time</th>
+<th>Church</th>
+<th>Code</th>
+<th>Contact</th>
+<th>Events</th>
+<th>Amount</th>
+<th>Status</th>
+<th>Desk</th>
+</tr>
+</thead>
+      <tbody>${tableRows || '<tr><td colspan="8">No registrations match the current filters.</td></tr>'}</tbody>
     </table>
   `;
 }
