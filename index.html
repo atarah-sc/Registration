@@ -887,18 +887,29 @@ function renderDashboard(){
       <tr>
 const ch = churches.find(c=>c.id===r.churchId);
 
+const ch = churches.find(c => c.id === r.churchId);
+
 return `
 <tr>
 <td>${fmtTime(r.timestamp)}</td>
 <td><b>${escapeHtml(r.church)}</b></td>
 <td>${escapeHtml(ch?.code || "—")}</td>
-<td>${escapeHtml(r.contact||'—')}</td>
-        <td>${evBadges}</td>
-        <td>${fmtMoney(r.amount)}</td>
-        <td><button class="status-pill ${r.paid?'paid':'unpaid'}" data-toggle-paid="${r.id}" data-current="${r.paid}">${r.paid?'✅ Paid':'⏳ Unpaid'}</button></td>
-        <td>${escapeHtml(r.desk||'—')}</td>
-        <td><button class="del-btn" data-edit="${r.id}" title="Edit registration">✎</button> <button class="del-btn" data-del="${r.id}" title="Delete registration">🗑</button></td>
-      </tr>`;
+<td>${escapeHtml(r.contact || '—')}</td>
+<td>${evBadges}</td>
+<td>${fmtMoney(r.amount)}</td>
+<td>
+  <button class="status-pill ${r.paid ? 'paid' : 'unpaid'}"
+          data-toggle-paid="${r.id}"
+          data-current="${r.paid}">
+    ${r.paid ? '✅ Paid' : '⏳ Unpaid'}
+  </button>
+</td>
+<td>${escapeHtml(r.desk || '—')}</td>
+<td>
+  <button class="del-btn" data-edit="${r.id}" title="Edit registration">✎</button>
+  <button class="del-btn" data-del="${r.id}" title="Delete registration">🗑</button>
+</td>
+</tr>`;
     }).join('');
   }
 
