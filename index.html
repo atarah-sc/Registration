@@ -294,6 +294,8 @@
     <div class="stat-card"><div class="n" id="statUnpaid">0</div><div class="l">Unpaid</div></div>
     <div class="stat-card"><div class="n" id="statChurches">0</div><div class="l">Churches Registered</div></div>
     <div class="stat-card"><div class="n" id="statAmount">₹0</div><div class="l">Total Collected</div></div>
+    <div class="stat-card"><div class="n" id="statAmountPaid" style="color:var(--success-bright);">₹0</div><div class="l">Amount Paid</div></div>
+    <div class="stat-card"><div class="n" id="statAmountUnpaid" style="color:var(--danger-bright);">₹0</div><div class="l">Amount Pending</div></div>
   </section>
 
   <!-- REGISTRATION FORM -->
@@ -684,12 +686,14 @@ function renderDashboard(){
     const paidCount = rows.filter(r=>r.paid).length;
     const unpaidCount = rows.length - paidCount;
     const bundleCount = rows.filter(r=>r.bundle).length;
+    const paidAmt = rows.filter(r=>r.paid).reduce((s,r)=>s+(Number(r.amount)||0),0);
+    const unpaidAmt = rows.filter(r=>!r.paid).reduce((s,r)=>s+(Number(r.amount)||0),0);
     summaryBar.style.display = 'flex';
     summaryBar.innerHTML = `
       <div class="esb-title">👑 ${escapeHtml(ev ? ev.name : 'Event')} — Churches Registered</div>
       <div class="esb-stat"><b>${rows.length}</b>church${rows.length===1?'':'es'} registered</div>
-      <div class="esb-stat paid"><b>${paidCount}</b>paid</div>
-      <div class="esb-stat unpaid"><b>${unpaidCount}</b>unpaid</div>
+      <div class="esb-stat paid"><b>${paidCount}</b>paid <span style="color:var(--ink-dim);">(${fmtMoney(paidAmt)})</span></div>
+      <div class="esb-stat unpaid"><b>${unpaidCount}</b>unpaid <span style="color:var(--ink-dim);">(${fmtMoney(unpaidAmt)})</span></div>
       ${bundleCount ? `<div class="esb-stat"><b>${bundleCount}</b>via bundle</div>` : ''}
     `;
   }
@@ -742,10 +746,14 @@ function renderDashboard(){
   const paid = registrations.filter(r=>r.paid).length;
   const unpaid = total - paid;
   const amount = registrations.reduce((s,r)=> s + (Number(r.amount)||0), 0);
+  const amountPaid = registrations.filter(r=>r.paid).reduce((s,r)=> s + (Number(r.amount)||0), 0);
+  const amountUnpaid = amount - amountPaid;
   document.getElementById('statTotal').textContent = total;
   document.getElementById('statPaid').textContent = paid;
   document.getElementById('statUnpaid').textContent = unpaid;
   document.getElementById('statAmount').textContent = fmtMoney(amount);
+  document.getElementById('statAmountPaid').textContent = fmtMoney(amountPaid);
+  document.getElementById('statAmountUnpaid').textContent = fmtMoney(amountUnpaid);
   document.getElementById('statChurches').textContent = new Set(registrations.map(r=>r.church)).size;
 
   const sealAmt = document.getElementById('sealAmt');
