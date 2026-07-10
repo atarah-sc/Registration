@@ -253,6 +253,13 @@
   .church-row:last-child{border-bottom:none;}
   .church-name-edit{display:flex; gap:8px; margin-bottom:8px;}
   .church-name-edit input{flex:1; font-weight:600;}
+  .church-name-edit input[data-rename-code]{flex:none; width:90px; text-transform:uppercase; font-weight:700; text-align:center; color:var(--gold-bright);}
+  .code-badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:800; letter-spacing:.04em; color:var(--forest-dark);
+    background:var(--gold-bright); border-radius:6px; padding:2px 7px; margin-right:7px;
+    font-family:'Inter'; vertical-align:1px;
+  }
   .contacts-wrap{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
   .contact-chip{
     display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.05);
@@ -359,6 +366,7 @@
         </select>
         <div class="inline-add">
           <input type="text" id="newChurchQuick" placeholder="Type a new church name…">
+          <input type="text" id="newChurchCodeQuick" placeholder="Code" style="max-width:80px; flex:none; text-transform:uppercase;">
           <button class="tiny-btn" id="addChurchQuickBtn">+ Add Church</button>
         </div>
       </div>
@@ -459,13 +467,17 @@
 <div class="overlay" id="manageOverlay">
   <div class="modal" style="max-width:640px;">
     <div class="row-close"><h3>Manage Churches &amp; Contact Numbers</h3><button class="close-x" id="closeManage">✕</button></div>
-    <input type="text" class="church-search" id="manageSearch" placeholder="Search churches…">
+    <input type="text" class="church-search" id="manageSearch" placeholder="Search churches or codes…">
     <div class="church-list" id="churchList"></div>
     <div class="new-church-box">
       <label>Add a New Church</label>
       <div class="field-row" style="margin-bottom:8px;">
         <input type="text" id="newChurchName" placeholder="Church name">
         <input type="tel" id="newChurchContact" placeholder="Contact number">
+      </div>
+      <div class="field-row" style="margin-bottom:8px;">
+        <input type="text" id="newChurchCode" placeholder="Church code (optional, e.g. GRC)" style="text-transform:uppercase;">
+        <div></div>
       </div>
       <button class="tiny-btn" id="addChurchFullBtn" style="width:100%;">+ Add Church</button>
     </div>
@@ -638,7 +650,7 @@ function renderChurchSelect(){
   const sel = document.getElementById('churchSelect');
   const current = sel.value;
   sel.innerHTML = '<option value="">— Select church —</option>' +
-    churches.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+    churches.map(c => `<option value="${c.id}">${c.code ? '['+escapeHtml(c.code)+'] ' : ''}${escapeHtml(c.name)}</option>`).join('');
   if(churches.some(c=>c.id===current)) sel.value = current;
   renderContactSelect();
 }
@@ -839,7 +851,7 @@ function renderDashboard(){
       return `
       <tr>
         <td>${fmtTime(r.timestamp)}</td>
-        <td><b>${escapeHtml(r.church)}</b></td>
+        <td>${(() => { const ch = churches.find(c=>c.id===r.churchId); return ch && ch.code ? `<span class="code-badge">${escapeHtml(ch.code)}</span>` : ''; })()}<b>${escapeHtml(r.church)}</b></td>
         <td>${escapeHtml(r.contact||'—')}</td>
         <td>${evBadges}</td>
         <td>${fmtMoney(r.amount)}</td>
@@ -909,11 +921,16 @@ document.getElementById('churchSelect').addEventListener('change', () => {
 
 document.getElementById('addChurchQuickBtn').addEventListener('click', async () => {
   const input = document.getElementById('newChurchQuick');
+  const codeInput = document.getElementById('newChurchCodeQuick');
   const name = input.value.trim();
+  const code = codeInput.value.trim().toUpperCase();
   if(!name){ toast('Enter a church name first.', true); return; }
+  if(code && churches.some(c => (c.code||'').toUpperCase() === code)){
+    toast('That church code is already in use.', true); return;
+  }
   try{
-    const ref = await churchesCol.add({name, contacts:[], createdAt: firebase.firestore.FieldValue.serverTimestamp()});
-    input.value = '';
+    const ref = await churchesCol.add({name, code: code || '', contacts:[], createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    input.value = ''; codeInput.value = '';
     setTimeout(()=>{ document.getElementById('churchSelect').value = ref.id; renderContactSelect(); }, 300);
     toast('Church added: ' + name);
   }catch(e){ toast('Could not add church.', true); }
@@ -1108,9 +1125,11 @@ function buildPrintArea(){
     const evText = r.bundle
       ? 'All 10 Events (Bundle)'
       : (r.events||[]).map(e => e.name.split('—')[0].trim() + (e.participant ? ' ('+e.participant+')' : '')).join(', ');
+    const ch = churches.find(c=>c.id===r.churchId);
+    const churchDisplay = (ch && ch.code ? '['+ch.code+'] ' : '') + r.church;
     return `<tr>
       <td>${fmtTime(r.timestamp)}</td>
-      <td>${escapeHtml(r.church)}</td>
+      <td>${escapeHtml(churchDisplay)}</td>
       <td>${escapeHtml(r.contact||'—')}</td>
       <td>${escapeHtml(evText)}</td>
       <td>${fmtMoney(r.amount)}</td>
@@ -1163,7 +1182,7 @@ function renderManageList(){
   if(!overlay.classList.contains('open')) return;
   const q = document.getElementById('manageSearch').value.trim().toLowerCase();
   const list = document.getElementById('churchList');
-  const filtered = churches.filter(c => c.name.toLowerCase().includes(q));
+  const filtered = churches.filter(c => c.name.toLowerCase().includes(q) || (c.code||'').toLowerCase().includes(q));
   if(filtered.length === 0){
     list.innerHTML = `<div style="padding:20px; text-align:center; color:var(--ink-dim); font-style:italic;">No churches match.</div>`;
     return;
@@ -1171,6 +1190,7 @@ function renderManageList(){
   list.innerHTML = filtered.map(c => `
     <div class="church-row" data-church-id="${c.id}">
       <div class="church-name-edit">
+        <input type="text" value="${escapeHtml(c.code||'')}" placeholder="Code" data-rename-code="${c.id}" maxlength="8">
         <input type="text" value="${escapeHtml(c.name)}" data-rename="${c.id}">
         <button class="tiny-btn ghost" data-save-name="${c.id}">Save</button>
       </div>
@@ -1190,10 +1210,15 @@ function renderManageList(){
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-save-name');
       const input = list.querySelector(`[data-rename="${id}"]`);
+      const codeInput = list.querySelector(`[data-rename-code="${id}"]`);
       const name = input.value.trim();
+      const code = codeInput.value.trim().toUpperCase();
       if(!name){ toast('Church name cannot be empty.', true); return; }
-      try{ await churchesCol.doc(id).update({name}); toast('Church renamed.'); }
-      catch(e){ toast('Could not rename.', true); }
+      if(code && churches.some(c => c.id !== id && (c.code||'').toUpperCase() === code)){
+        toast('That church code is already used by another church.', true); return;
+      }
+      try{ await churchesCol.doc(id).update({name, code}); toast('Church updated.'); }
+      catch(e){ toast('Could not save.', true); }
     });
   });
   list.querySelectorAll('[data-remove-contact]').forEach(btn => {
@@ -1220,12 +1245,17 @@ function renderManageList(){
 document.getElementById('addChurchFullBtn').addEventListener('click', async () => {
   const nameInp = document.getElementById('newChurchName');
   const contactInp = document.getElementById('newChurchContact');
+  const codeInp = document.getElementById('newChurchCode');
   const name = nameInp.value.trim();
   const contact = contactInp.value.trim();
+  const code = codeInp.value.trim().toUpperCase();
   if(!name){ toast('Enter a church name.', true); return; }
+  if(code && churches.some(c => (c.code||'').toUpperCase() === code)){
+    toast('That church code is already in use.', true); return;
+  }
   try{
-    await churchesCol.add({name, contacts: contact ? [contact] : [], createdAt: firebase.firestore.FieldValue.serverTimestamp()});
-    nameInp.value=''; contactInp.value='';
+    await churchesCol.add({name, code: code || '', contacts: contact ? [contact] : [], createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    nameInp.value=''; contactInp.value=''; codeInp.value='';
     toast('Church added: ' + name);
   }catch(e){ toast('Could not add church.', true); }
 });
