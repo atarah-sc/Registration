@@ -880,11 +880,12 @@ function renderDashboard(){
   } else {
     tbody.innerHTML = rows.map(r => {
       const evBadges = r.bundle
-        ? `<span class="badge bundle">🎟️ All 10 Events (Bundle)</span>`
-        : (r.events||[]).map(e => `<span class="badge ev${e.id===eventFilter?' match':''}">${escapeHtml(e.name.split('—')[0].trim())}${e.participant?' · '+escapeHtml(e.participant):''}</span>`).join('');
-      return `
-      <tr>
-const ch = churches.find(c=>c.id===r.churchId);
+  ? `<span class="badge bundle">🎟️ All 10 Events (Bundle)</span>`
+  : (r.events || []).map(e =>
+      `<span class="badge ev${e.id===eventFilter ? ' match' : ''}">
+        ${escapeHtml(e.name.split('—')[0].trim())}${e.participant ? ' · ' + escapeHtml(e.participant) : ''}
+      </span>`
+    ).join('');
 
 const ch = churches.find(c => c.id === r.churchId);
 
@@ -893,20 +894,20 @@ return `
 <td>${fmtTime(r.timestamp)}</td>
 <td><b>${escapeHtml(r.church)}</b></td>
 <td>${escapeHtml(ch?.code || "—")}</td>
-<td>${escapeHtml(r.contact || '—')}</td>
+<td>${escapeHtml(r.contact || "—")}</td>
 <td>${evBadges}</td>
 <td>${fmtMoney(r.amount)}</td>
 <td>
-  <button class="status-pill ${r.paid ? 'paid' : 'unpaid'}"
-          data-toggle-paid="${r.id}"
-          data-current="${r.paid}">
-    ${r.paid ? '✅ Paid' : '⏳ Unpaid'}
-  </button>
+<button class="status-pill ${r.paid ? 'paid' : 'unpaid'}"
+data-toggle-paid="${r.id}"
+data-current="${r.paid}">
+${r.paid ? '✅ Paid' : '⏳ Unpaid'}
+</button>
 </td>
-<td>${escapeHtml(r.desk || '—')}</td>
+<td>${escapeHtml(r.desk || "—")}</td>
 <td>
-  <button class="del-btn" data-edit="${r.id}" title="Edit registration">✎</button>
-  <button class="del-btn" data-del="${r.id}" title="Delete registration">🗑</button>
+<button class="del-btn" data-edit="${r.id}" title="Edit registration">✎</button>
+<button class="del-btn" data-del="${r.id}" title="Delete registration">🗑</button>
 </td>
 </tr>`;
     }).join('');
