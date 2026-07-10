@@ -440,6 +440,10 @@
           <option value="paid">Paid only</option>
           <option value="unpaid">Unpaid only</option>
         </select>
+        <label style="display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-dim); font-weight:500; text-transform:none; letter-spacing:0; margin-bottom:0; cursor:pointer; white-space:nowrap;">
+          <input type="checkbox" id="printHideMeta" style="width:15px; height:15px; accent-color:var(--gold); margin:0;">
+          Hide church &amp; time
+        </label>
         <button class="print-btn" id="printBtn">🖨 Print Results</button>
       </div>
     </div>
@@ -1160,6 +1164,8 @@ document.getElementById('printBtn').addEventListener('click', () => {
 function buildPrintArea(){
   const {rows, search, status, eventFilter} = getFilteredRegistrations();
   const ev = eventFilter !== 'all' ? EVENTS.find(e=>e.id===eventFilter) : null;
+  const hideMeta = document.getElementById('printHideMeta').checked;
+  const colCount = hideMeta ? 6 : 8;
 
   const filterBits = [];
   if(ev) filterBits.push('Event: ' + ev.name);
@@ -1180,8 +1186,8 @@ function buildPrintArea(){
 const churchCode = ch?.code || "";
 
 return `<tr>
-<td>${fmtTime(r.timestamp)}</td>
-<td>${escapeHtml(r.church)}</td>
+${hideMeta ? '' : `<td>${fmtTime(r.timestamp)}</td>
+<td>${escapeHtml(r.church)}</td>`}
 <td>${escapeHtml(churchCode || "—")}</td>
 <td>${escapeHtml(r.contact||'—')}</td>
       <td>${escapeHtml(evText)}</td>
@@ -1209,8 +1215,8 @@ return `<tr>
     <table>
       <thead>
 <tr>
-<th>Time</th>
-<th>Church</th>
+${hideMeta ? '' : `<th>Time</th>
+<th>Church</th>`}
 <th>Code</th>
 <th>Contact</th>
 <th>Events</th>
@@ -1219,7 +1225,7 @@ return `<tr>
 <th>Desk</th>
 </tr>
 </thead>
-      <tbody>${tableRows || '<tr><td colspan="8">No registrations match the current filters.</td></tr>'}</tbody>
+      <tbody>${tableRows || `<tr><td colspan="${colCount}">No registrations match the current filters.</td></tr>`}</tbody>
     </table>
   `;
 }
